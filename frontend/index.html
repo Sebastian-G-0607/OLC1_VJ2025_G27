@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editor Obj-C</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <h1>OBJ - C</h1>
+
+    <div class="container">
+        <div class="input-area">
+            <h2>Entrada</h2>
+            <div class="controls_input">
+                <input type="file" id="fileInput" accept=".objc" />
+                <button onclick="interpretar()">Interpretar</button>
+            </div>
+
+            <textarea id="editor" placeholder="Escribe o carga tu código aquí..."></textarea>
+        </div>
+        <div class="output-area">
+            <h2>Salida</h2>
+            <div class="controls_output">
+
+                <button onclick="interpretar()">Reporte de Errores</button>
+                <button onclick="interpretar()">Tabla de Símbolos</button>
+                <button onclick="interpretar()">AST</button>
+            </div>
+
+            <textarea id="resultado" readonly></textarea>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
