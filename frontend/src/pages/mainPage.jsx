@@ -1,6 +1,7 @@
 import './mainPage.css';
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import Swal from 'sweetalert2';
+import { getInfo } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
 
 const MainPage = () => {
     const fileInputRef = useRef(null);
@@ -33,6 +34,15 @@ const MainPage = () => {
         reader.readAsText(file);
     };
 
+    const handleInterpretarClick = async () => {
+        try {
+            const response = await getInfo();
+            console.log(response);
+        } catch (error) {
+            console.error('Error al interpretar:', error);
+        }
+    };
+
     return (
         <div>
             <h1>OBJ - C</h1>
@@ -53,7 +63,12 @@ const MainPage = () => {
                         <button type="button" className='editor-buttons' onClick={handleFileButtonClick}>
                             Cargar Archivo
                         </button>
-                        <button className='editor-buttons'>Interpretar</button>
+                        <button
+                            className='editor-buttons'
+                            onClick={handleInterpretarClick}
+                        >
+                            Interpretar
+                        </button>
                     </div>
 
                     <textarea

@@ -3,6 +3,6 @@ from flask import Blueprint, jsonify, request
 BlueprintPrueba = Blueprint('prueba', __name__)
 
 #!RUTA: http://localhost:4000/
-@BlueprintPrueba.route('/', methods=['GET'])
+@BlueprintPrueba.route('/api/get-info', methods=['GET'])
 def prueba():
-    return "Hola"
+    return jsonify({'response': 'Response from the server'})
