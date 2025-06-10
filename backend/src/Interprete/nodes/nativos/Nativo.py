@@ -1,9 +1,10 @@
 from backend.src.Interprete.nodes.Nodo import Nodo
 
-class Numero(Nodo):
+class Nativo(Nodo):
     # NODO PARA UN NÚMERO ENTERO O FLOTANTE
-    def __init__(self, valor):
+    def __init__(self, tipo, valor):
+        super().__init__(tipo)
         self.valor = valor  # Valor del número (puede ser entero o flotante)
 
     def __repr__(self):
-        return f"Numero({self.valor!r})"
+        return f"Valor({self.valor!r})"

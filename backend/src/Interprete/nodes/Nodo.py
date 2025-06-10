@@ -1,6 +1,9 @@
 #SE DEFINE LA CLASE BASE NODO
 class Nodo:
     #ESTE CLASE ES LA BASE PARA TODOS LOS NODOS DEL AST
+    def __init__(self, tipo=None):
+        self.tipo = tipo
+    
     #PROPORCIONA EL MÉTODO ACCEPT(self, visitor) QUE PERMITE A LOS VISITANTES RECORRER EL AST
     #BASICAMENTE, EL accept RECIBE LA VISITA DEL OBJETO visitor
     def accept(self, visitor):

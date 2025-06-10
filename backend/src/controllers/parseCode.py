@@ -3,10 +3,10 @@ from backend.src.Interprete.parser import parser
 from backend.src.Interprete.simbol.RaizArbol import Arbol
 from backend.src.Interprete.visitor_object.visitor_output import Visitor_Output
 
-BlueprintPrueba = Blueprint('parse', __name__)
+BlueprintParse = Blueprint('parse', __name__)
 
 #!RUTA: http://localhost:4000/
-@BlueprintPrueba.route('/api/parse', methods=['POST'])
+@BlueprintParse.route('/api/parse', methods=['POST'])
 def prueba():
     # Accede al contenido JSON enviado por el frontend
     data = request.get_json()
@@ -19,8 +19,11 @@ def prueba():
     # SE OBTIENE EL AST CREADO POR EL PARSER
     try:
         instrucciones = parser.parse(input['code'])
+        print(instrucciones)
         ast = Arbol(instrucciones)
     except Exception as e:
+        print(f"Error al crear el árbol")
+        print(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
     if ast is None: 

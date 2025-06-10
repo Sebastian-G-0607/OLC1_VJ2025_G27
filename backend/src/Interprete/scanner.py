@@ -1,4 +1,5 @@
 import ply.lex as lex
+import os
 
 # DEFINICIÓN DE TODOS LOS TOKENS DEL LENGUAJE
 tokens = (
@@ -35,25 +36,37 @@ tokens = (
     'MENORQUE',
     'MAYORIGUALQUE',
     'MENORIGUALQUE',
+    'NEGACION',
+    'MODULO',
+    'AND',
+    'OR',
+    'NOT',
+    'XOR',
 )
 
 # EXPRESIONES REGULARES PARA PALABRAS Y SÍMBOLOS RESERVADOS DEL LENGUAJE
+t_IGUALQUE = r'=='
 t_IGUAL = r'='
-t_PUNTO_Y_COMA = r';'
-t_COMA = r','
 t_INCREMENTO = r'\+\+'
-t_DECREMENTO = r'--'
 t_MAS = r'\+'
+t_DECREMENTO = r'--'
 t_MENOS = r'-'
 t_POTENCIA = r'\*\*'
 t_MULTIPLICACION = r'\*'
-t_DIVISION = r'/'
-t_IGUALQUE = r'=='
 t_DIFERENTEQUE = r'!='
-t_MAYORQUE = r'>'
-t_MENORQUE = r'<'
+t_NEGACION = r'!'
 t_MAYORIGUALQUE = r'>='
+t_MAYORQUE = r'>'
 t_MENORIGUALQUE = r'<='
+t_MENORQUE = r'<'
+t_AND = r'&&'
+t_OR = r'\|\|'
+t_NOT = r'!'
+t_XOR = r'\^'
+t_PUNTO_Y_COMA = r';'
+t_COMA = r','
+t_DIVISION = r'/'
+t_MODULO = r'%'
 t_PARENTESIS_IZQ = r'\('
 t_PARENTESIS_DER = r'\)'
 
@@ -173,10 +186,12 @@ def t_ENTERO(t):
 
 def t_CADENA(t):
     r'"([^"\\]|\\.)*"'
+    t.value = t.value.replace('"', '')
     return t
 
 def t_CARACTER(t):
     r"'[^']*'"
+    t.value = t.value.replace("'", "")
     return t
 
 def t_whitespace(t):
