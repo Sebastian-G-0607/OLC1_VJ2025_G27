@@ -3,7 +3,6 @@ import sys
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(PROJECT_ROOT)  # Añade /OLC1_VJ2025_G27
-print(PROJECT_ROOT)
 
 from flask import Flask 
 from backend.src.controllers.prueba import BlueprintPrueba
