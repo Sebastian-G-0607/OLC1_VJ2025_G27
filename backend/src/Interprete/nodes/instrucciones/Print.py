@@ -3,7 +3,7 @@ from backend.src.Interprete.simbol.RaizArbol import Arbol
 
 class Println(Nodo):
     # NODO PARA LA INSTRUCCION PRINTLN
-    def __init__(self, expresion):
+    def __init__(self, expresion, linea=None, columna=None):
         self.expresion = expresion
 
     def __repr__(self):

@@ -42,6 +42,10 @@ tokens = (
     'OR',
     'NOT',
     'XOR',
+    'IF',
+    'ELSE',
+    'LLAVE_IZQ',
+    'LLAVE_DER',
 )
 
 # EXPRESIONES REGULARES PARA PALABRAS Y SÍMBOLOS RESERVADOS DEL LENGUAJE
@@ -69,20 +73,31 @@ t_DIVISION = r'/'
 t_MODULO = r'%'
 t_PARENTESIS_IZQ = r'\('
 t_PARENTESIS_DER = r'\)'
+t_LLAVE_IZQ = r'\{'
+t_LLAVE_DER = r'\}'
 
 #PALABRAS RESERVADAS DEL LENGUAJE
 def t_PRINT(t):
     r'[Pp][Rr][Ii][Nn][Tt][Ll][Nn]'
     t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_IF(t):
+    r'[Ii][Ff]\b'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_ELSE(t):
+    r'[Ee][Ll][Ss][Ee]\b'
+    t.value = str(t.value)
+    t.value = t.value.lower()
     return t
 
 def t_TRUE(t):
     r'[Tt][Rr][Uu][Ee]\b'
-    try:
-        t.value = 'true'
-    except ValueError:
-        print(f"Valor inválido para TRUE: {t.value}")
-        t.value = 'false'
+    t.value = 'true'
     return t
 
 def t_FALSE(t):

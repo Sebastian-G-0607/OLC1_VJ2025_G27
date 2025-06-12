@@ -19,7 +19,6 @@ def prueba():
     # SE OBTIENE EL AST CREADO POR EL PARSER
     try:
         instrucciones = parser.parse(input['code'])
-        print(instrucciones)
         ast = Arbol(instrucciones)
     except Exception as e:
         print(f"Error al crear el árbol")
@@ -37,5 +36,4 @@ def prueba():
     for nodo in ast.getInstrucciones():
         nodo.accept(visitor)
 
-    print(ast.getConsola())
     return jsonify({'consola': ast.getConsola()})

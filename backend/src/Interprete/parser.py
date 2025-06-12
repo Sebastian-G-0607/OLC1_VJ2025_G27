@@ -11,6 +11,12 @@ from backend.src.Interprete.nodes.expresiones.Not import Not
 from backend.src.Interprete.nodes.expresiones.Or import Or
 from backend.src.Interprete.nodes.expresiones.Umenos import Umenos
 from backend.src.Interprete.nodes.expresiones.Xor import Xor
+from backend.src.Interprete.nodes.instrucciones.Asignacion import Asignacion
+from backend.src.Interprete.nodes.instrucciones.Declaracion import Declaracion
+from backend.src.Interprete.nodes.instrucciones.Else import Else
+from backend.src.Interprete.nodes.instrucciones.If import If
+from backend.src.Interprete.nodes.instrucciones.IfElse import IfElse
+from backend.src.Interprete.nodes.instrucciones.IfElseIf import IfElseIf
 from backend.src.Interprete.scanner import tokens
 from backend.src.Interprete.nodes.expresiones.Suma import Suma
 from backend.src.Interprete.nodes.expresiones.Resta import Resta
@@ -35,7 +41,7 @@ precedence = (
 def p_programa(t):
     '''programa : sentencias'''
     t[0] = t[1]  # El resultado del programa es la lista de sentencias
-
+    
 def p_lista_sentencias(t):
     '''sentencias : sentencias sentencia''' 
     t[0] = t[1]
@@ -46,32 +52,47 @@ def p_una_sentencia(t):
     t[0] = []
     t[0].append(t[1])  # Crea una lista con la única sentencia
 
-def p_sentencia_declaracion(t):
-    '''sentencia : declaracion'''
-
-def p_sentencia_asignacion(t):
-    '''sentencia : asignacion'''
-
 def p_sentencia_print(t):
     '''sentencia : PRINT PARENTESIS_IZQ expresion PARENTESIS_DER PUNTO_Y_COMA'''
     t[0] = Println(t[3])  # Crea un nodo Println con la expresión a imprimir
 
+def p_sentencia_declaracion(t):
+    '''sentencia : declaracion'''
+    t[0] = t[1]  # La sentencia es una declaración, se asigna directamente
+
+def p_sentencia_asignacion(t):
+    '''sentencia : asignacion'''
+    t[0] = t[1]  # La sentencia es una asignación, se asigna directamente
+
+def p_sentencia_if(t):
+    '''sentencia : sentenciaIf'''
+    t[0] = t[1]  # La sentencia es una sentencia If, se asigna directamente
+
 def p_asignacion(t):
     '''asignacion : IDENTIFICADOR IGUAL expresion PUNTO_Y_COMA'''
+    # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION
+    t[0] = Asignacion(t[1], t[3])
 
-def p_declaracion(t):
-    '''declaracion : tipo IDENTIFICADOR declaracion_op'''
+def p_declaracion_init(t):
+    '''declaracion : declaracion_valor'''
+    t[0] = t[1]
 
-def p_declaracion_op_pto_y_coma(t):
-    '''declaracion_op : PUNTO_Y_COMA '''
+def p_declaracion_no_init(t):
+    '''declaracion : declaracion_sin_valor'''
+    t[0] = t[1]
 
 def p_declaracion_op_igual(t):
-    '''declaracion_op : IGUAL expresion PUNTO_Y_COMA'''
+    '''declaracion_valor : tipo IDENTIFICADOR IGUAL expresion PUNTO_Y_COMA'''
+    t[0] = Declaracion(t[1], t[2], t[4])
+
+def p_declaracion_op_pto_y_coma(t):
+    '''declaracion_sin_valor : tipo IDENTIFICADOR PUNTO_Y_COMA'''
+    t[0] = Declaracion(t[1], t[2])  # Declaración sin inicialización
 
 def p_expresion_suma(t):
     '''expresion : expresion MAS expresion'''
     #SE CREA UN NODO SUMA CON LOS HIJOS t[1] Y t[3]
-    t[0] = Suma(t[1], t[3])
+    t[0] = Suma(t[1], t[3], t[1].linea, t[1].columna)
 
 def p_expresion_resta(t):
     '''expresion : expresion MENOS expresion'''
@@ -164,24 +185,24 @@ def p_logica_xor(t):
 def p_expresion_entero(t):
     '''expresion : ENTERO'''
     # SE ASIGNA EL VALOR ENTERO A t[0]
-    t[0] = Nativo(Tipos.INT, int(t[1]))
+    t[0] = Nativo(Tipos.INT, int(t[1]), t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
 
 def p_expresion_flotante(t):
     '''expresion : FLOTANTE'''
     # SE ASIGNA EL VALOR FLOTANTE A t[0]
-    t[0] = Nativo(Tipos.FLOAT, float(t[1]))
+    t[0] = Nativo(Tipos.FLOAT, float(t[1]), t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
 
-def p_expresion_true(t):   
+def p_expresion_true(t):
     '''expresion : TRUE'''
-    t[0] = Nativo(Tipos.BOOL, True)
+    t[0] = Nativo(Tipos.BOOL, True, t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
 
 def p_expresion_false(t):
     '''expresion : FALSE'''
-    t[0] = Nativo(Tipos.BOOL, False)
+    t[0] = Nativo(Tipos.BOOL, False, t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
 
 def p_expresion_cadena(t):
     '''expresion : CADENA'''
-    t[0] = Nativo(Tipos.STRING, str(t[1]))
+    t[0] = Nativo(Tipos.STRING, str(t[1]), t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
 
 def p_expresion_caracter(t):
     '''expresion : CARACTER'''
@@ -196,19 +217,62 @@ def p_expresion_agrupada(t):
     'expresion_agrupada : PARENTESIS_IZQ expresion PARENTESIS_DER'
     t[0] = t[2]  # Retorna la expresión dentro de los paréntesis
 
-def p_tipo(t):
-    '''tipo : TIPO_INT
-            | TIPO_FLOAT
-            | TIPO_BOOL
-            | TIPO_CHAR
-            | TIPO_STR'''
+def p_sentencia_if_simple(t):
+    '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
+    t[0] = If(t[3], t[6])
+
+def p_sentencia_if_else(t):
+    '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER else'''
+    # SE CREA UN NODO IF CON LA CONDICION Y LAS INSTRUCCIONES
+    t[0] = IfElse(t[3], t[6], t[8])
+
+def p_sentencia_else(t):
+    '''else : ELSE LLAVE_IZQ sentencias LLAVE_DER'''
+    t[0] = Else(t[3])
+
+def p_sentencia_if_else_if(t):
+    '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER ELSE sentenciaIf'''
+    t[0] = IfElseIf(t[3], t[6], t[9])
+
+def p_condicion_logica(t):
+    '''condicion : logica'''
+    # SE ASIGNA LA EXPRESION A LA CONDICION
+    t[0] = t[1]  # Retorna la expresión como condición
+
+def p_condicion_relacional(t):
+    '''condicion : relacional'''
+    # SE ASIGNA LA EXPRESION A LA CONDICION
+    t[0] = t[1]  # Retorna la expresión como condición
+
+def p_tipo_int(t):
+    'tipo : TIPO_INT'
+    t[0] = t[1]
+
+def p_tipo_float(t):
+    'tipo : TIPO_FLOAT'
+    t[0] = t[1]
+
+def p_tipo_bool(t):
+    'tipo : TIPO_BOOL'
+    t[0] = t[1]
+
+def p_tipo_char(t):
+    'tipo : TIPO_CHAR'
+    t[0] = t[1]
+
+def p_tipo_str(t):
+    'tipo : TIPO_STR'
+    t[0] = t[1]
 
 def find_column(input, token):
     line_start = input.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
 def p_error(t):
-    print("Error sintáctico en '%s'" % t.value + " en la línea %d, columna %d" % (t.lineno, find_column(t.lexer.lexdata, t)))
+    if t:
+        print(f"Error de sintaxis: token inesperado '{t.value}' en línea {t.lineno}")
+    else:
+        print("Error de sintaxis: fin de entrada inesperado")
     return
 
 print("Construyendo el analizador sintáctico...\n")
