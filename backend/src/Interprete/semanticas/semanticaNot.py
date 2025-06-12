@@ -7,4 +7,3 @@ def validar_Not(nodo1, t1):
         return not t1, Tipos.BOOL
     else:
         return Error('Semántico', 'No se puede aplicar el operador NOT a este tipo'), None
-            

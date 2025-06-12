@@ -3,9 +3,6 @@ from backend.src.Interprete.simbol.ListaTipos import Tipos
 from backend.src.Interprete.errors.Error import Error
 
 def validar_multiplicacion(nodo1, nodo2, t1, t2):
-    print(nodo1.tipo)
-    print(nodo2.tipo)
-
     if nodo1.tipo == Tipos.INT: 
         match nodo2.tipo:
             # ENTERO * ENTERO = ENTERO
@@ -49,4 +46,4 @@ def validar_multiplicacion(nodo1, nodo2, t1, t2):
                 return Error('Semántico', 'Error al multiplicar la expresión'), None
     
     if nodo1.tipo == Tipos.STRING or nodo1.tipo == Tipos.BOOL:
-        return Error('Semántico', 'No se puede multiplicar un valor de este tipo'), None
+        return Error('Semántico', 'Los tipos de datos proporcionados no son compatibles para la operación de multiplicación'), None

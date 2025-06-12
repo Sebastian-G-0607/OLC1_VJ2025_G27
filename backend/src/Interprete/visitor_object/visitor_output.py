@@ -1,3 +1,4 @@
+from backend.src.Interprete.nodes.nativos.Nativo import Nativo
 from backend.src.Interprete.semanticas.semanticaDeclaracion import validarDeclaracion
 from backend.src.Interprete.semanticas.semanticaSuma import validar_suma
 from backend.src.Interprete.simbol.ListaTipos import Tipos
@@ -244,13 +245,25 @@ class Visitor_Output(Visitor):
         tipoVariable = st.get_variable(nodo.id)[1]
         #VERIFICO SI EL TIPO DE LA VARIABLE ES EL MISMO QUE EL DEL VALOR
         if nodo.valor.tipo == tipoVariable:
-            st.update_variable(nodo.id, nodo.valor)
+            st.update_variable(nodo.id, valor)
             return
         else:
             error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} al una variable de tipo {tipoVariable}',)
             print(error)
             return error
 
+    def visit_AccesoVariable(self, nodo: Nodo):
+        # OBTENGO EL SIMBOLO DE LA VARIABLE
+        try:
+            simbolo, tipo = st.get_variable(nodo.id)
+            nodo.tipo = tipo # Actualizar el tipo del nodo
+        except KeyError:
+            error = Error("semántico", f'La variable {nodo.id} no está declarada')
+            print(error)
+            return error
+        nativo = Nativo(tipo, simbolo)
+        return nativo.accept(self)
+    
     def visit_Declaracion(self, nodo: Nodo):
         # VERIFICAR SI LA DECLARACIÓN CONTIENE O NO VALOR
         if nodo.valor is None:
@@ -341,4 +354,24 @@ class Visitor_Output(Visitor):
                     return resultado
         else:
             nodo.elseif.accept(self)
+        st.exit_scope()
+
+    
+    def visit_While(self, nodo: Nodo):
+        st.new_scope(f'while_{nodo.id}')
+        condicion = nodo.condition.accept(self)
+        #SE COMPRUEBA SI LA CONDICIÓN ES UN ERROR O SI NO ES BOOLEANA
+        if isinstance(condicion, Error):
+            return condicion
+        if nodo.condition.tipo != Tipos.BOOL:
+            error = Error("semántico", f'La condición de un While debe ser de tipo booleano')
+            print(error)
+            return error
+        
+        while condicion:
+            for instruccion in nodo.instructions:
+                resultado = instruccion.accept(self) # Ejecutar cada instrucción del ciclo
+                if isinstance(resultado, Error):
+                    return resultado
+            condicion = nodo.condition.accept(self) # Re-evaluar la condición al inicio del ciclo
         st.exit_scope()

@@ -18,7 +18,7 @@ def validar_modulo(nodo1, nodo2, t1, t2):
             case _: 
                 return Error('Semántico', 'Error al realizar división modular a la expresión'), None
             
-    if nodo1.tipo == Tipos.FLOAT:
+    elif nodo1.tipo == Tipos.FLOAT:
         match nodo2.tipo:
             case Tipos.INT: #entero
                 return int(t1 % t2), Tipos.FLOAT
@@ -33,5 +33,5 @@ def validar_modulo(nodo1, nodo2, t1, t2):
             case _: 
                 return Error('Semántico', 'Error al realizar división modular a la expresión'), None
             
-
-    
+    else:
+        return Error('Semántico', 'Los tipos de datos proporcionados no son compatibles para la operación de módulo'), None

@@ -24,4 +24,4 @@ def validar_OR(nodo1, nodo2, t1, t2):
                 return Error('Semántico', 'Error al comparar la expresión'), None
 
     else:
-        return Error('Semántico', 'El primer operando debe ser de tipo booleano para la operación OR'), None
+        return Error('Semántico', 'Los tipos de datos proporcionados no son compatibles para la operación OR'), None

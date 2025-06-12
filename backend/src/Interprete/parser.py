@@ -1,4 +1,5 @@
 import ply.yacc as yacc
+from backend.src.Interprete.nodes.expresiones.AccesoVariable import AccesoVariable
 from backend.src.Interprete.nodes.expresiones.And import And
 from backend.src.Interprete.nodes.expresiones.DiferenteQue import DiferenteQue
 from backend.src.Interprete.nodes.expresiones.IgualQue import IgualQue
@@ -11,6 +12,7 @@ from backend.src.Interprete.nodes.expresiones.Not import Not
 from backend.src.Interprete.nodes.expresiones.Or import Or
 from backend.src.Interprete.nodes.expresiones.Umenos import Umenos
 from backend.src.Interprete.nodes.expresiones.Xor import Xor
+from backend.src.Interprete.nodes.instrucciones.While import While
 from backend.src.Interprete.nodes.instrucciones.Asignacion import Asignacion
 from backend.src.Interprete.nodes.instrucciones.Declaracion import Declaracion
 from backend.src.Interprete.nodes.instrucciones.Else import Else
@@ -67,6 +69,11 @@ def p_sentencia_asignacion(t):
 def p_sentencia_if(t):
     '''sentencia : sentenciaIf'''
     t[0] = t[1]  # La sentencia es una sentencia If, se asigna directamente
+
+def p_sentencia_while(t):
+    '''sentencia : WHILE PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
+    # SE CREA UN NODO WHILE CON LA CONDICION Y LAS INSTRUCCIONES
+    t[0] = While(t[3], t[6])  # Crea un nodo While con la condición y las sentencias
 
 def p_asignacion(t):
     '''asignacion : IDENTIFICADOR IGUAL expresion PUNTO_Y_COMA'''
@@ -131,6 +138,11 @@ def p_expresion_relacionales(t):
 def p_expresion_logica(t):
     '''expresion : logica'''
     t[0] = t[1]  # SE ASIGNA LA EXPRESION LOGICA A t[0]
+
+def p_expresion_identificador(t):
+    '''expresion : IDENTIFICADOR'''
+    # SE CREA UN NODO ACCESO VARIABLE CON EL IDENTIFICADOR
+    t[0] = AccesoVariable(t[1])
 
 def p_relacional_igualque(t):
     '''relacional : expresion IGUALQUE expresion'''
@@ -229,13 +241,11 @@ def p_expresion_agrupada(t):
 
 def p_sentencia_if_simple(t):
     '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
-    print("Se ha encontrado un IF simple")
     t[0] = If(t[3], t[6])
 
 def p_sentencia_if_else(t):
     '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER ELSE LLAVE_IZQ selse LLAVE_DER'''
     # SE CREA UN NODO IF CON LA CONDICION Y LAS INSTRUCCIONES
-    print("Se ha encontrado un IF con ELSE")
     t[0] = IfElse(t[3], t[6], t[10])
 
 def p_sentencia_else(t):

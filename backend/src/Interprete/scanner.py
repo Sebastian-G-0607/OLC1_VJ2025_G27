@@ -46,6 +46,7 @@ tokens = (
     'ELSE',
     'LLAVE_IZQ',
     'LLAVE_DER',
+    'WHILE',
 )
 
 # EXPRESIONES REGULARES PARA PALABRAS Y SÍMBOLOS RESERVADOS DEL LENGUAJE
@@ -95,6 +96,12 @@ def t_ELSE(t):
     t.value = t.value.lower()
     return t
 
+def t_WHILE(t):
+    r'[Ww][Hh][Ii][Ll][Ee]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
 def t_TRUE(t):
     r'[Tt][Rr][Uu][Ee]'
     t.value = 'true'
@@ -110,7 +117,7 @@ def t_FALSE(t):
     return t
 
 def t_TIPO_FLOAT(t):
-    r'[Ff][Ll][Oo][Aa][Tt]'
+    r'[Ff][Ll][Oo][Aa][Tt]\b'
     try:
         t.value = str(t.value)
     except ValueError:

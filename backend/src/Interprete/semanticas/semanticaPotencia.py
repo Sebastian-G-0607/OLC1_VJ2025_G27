@@ -3,8 +3,6 @@ from backend.src.Interprete.simbol.ListaTipos import Tipos
 from backend.src.Interprete.errors.Error import Error
 
 def validar_potencia(nodo1, nodo2, t1, t2):
-    print(nodo1.tipo)
-    print(nodo2.tipo)
     if nodo1.tipo == Tipos.INT:
         match nodo2.tipo:
             case Tipos.INT: #entero
@@ -12,27 +10,28 @@ def validar_potencia(nodo1, nodo2, t1, t2):
             case Tipos.FLOAT: #float
                 return float(t1 ** t2), Tipos.FLOAT
             case Tipos.BOOL: #bool
-                return Error('Semántico', 'No se puede elevar un valor entero con un booleano'), None
+                return Error('semántico', 'No se puede elevar un valor entero con un booleano'), None
             case Tipos.STRING: #string
-                return Error('Semántico', 'No se puede elevar un valor entero con una cadena'), None
+                return Error('semántico', 'No se puede elevar un valor entero con una cadena'), None
             case Tipos.CHAR: #char
-                return Error('Semántico', 'No se puede elevar un valor entero con un caracter'), None
+                return Error('semántico', 'No se puede elevar un valor entero con un caracter'), None
             case _: 
-                return Error('Semántico', 'Error al elevar la expresión'), None
+                return Error('semántico', 'Error al elevar la expresión'), None
             
-    if nodo1.tipo == Tipos.FLOAT:
+    elif nodo1.tipo == Tipos.FLOAT:
         match nodo2.tipo:
             case Tipos.INT: #entero
                 return int(t1 ** t2), Tipos.FLOAT
             case Tipos.FLOAT: #float
                 return float(t1 ** t2), Tipos.FLOAT
             case Tipos.BOOL: #bool
-                return Error('Semántico', 'No se puede elevar un valor decimal con un booleano'), None
+                return Error('semántico', 'No se puede elevar un valor decimal con un booleano'), None
             case Tipos.STRING: #string
-                return Error('Semántico', 'No se puede elevar un valor decimal con una cadena'), None
+                return Error('semántico', 'No se puede elevar un valor decimal con una cadena'), None
             case Tipos.CHAR: #char
-                return Error('Semántico', 'No se puede elevar un valor decimal con un caracter'), None
+                return Error('semántico', 'No se puede elevar un valor decimal con un caracter'), None
             case _: 
-                return Error('Semántico', 'Error al elevar la expresión'), None
-
-    
+                return Error('semántico', 'Error al elevar la expresión'), None
+            
+    else:
+        return Error('semántico', 'Los tipos de datos proporcionados no son compatibles para la operación de potencia'), None

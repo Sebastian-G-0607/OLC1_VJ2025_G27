@@ -3,9 +3,6 @@ from backend.src.Interprete.simbol.ListaTipos import Tipos
 from backend.src.Interprete.errors.Error import Error
 
 def validar_menor(nodo1, nodo2, t1, t2):
-    print(nodo1.tipo)
-    print(nodo2.tipo)
-
     if nodo1.tipo == Tipos.INT:
         match nodo2.tipo:
             # ENTERO < ENTERO = BOOLEANO

@@ -30,7 +30,6 @@ def prueba():
         return jsonify({'error': 'Error al parsear la expresión.'}), 500
     
     print("AST generado correctamente.")
-    print(vars(ast))
     visitor = Visitor_Output(ast)
 
     # SE IMPRIME EL AST

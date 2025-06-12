@@ -24,7 +24,7 @@ def validar_suma(nodo1, nodo2, t1, t2):
             case _: 
                 return Error('semántico', 'Error al sumar la expresión'), None
 
-    if nodo1.tipo == Tipos.FLOAT:
+    elif nodo1.tipo == Tipos.FLOAT:
         match nodo2.tipo:
             #FLOAT + ENTERO = FLOAT
             case Tipos.INT: #entero
@@ -43,7 +43,7 @@ def validar_suma(nodo1, nodo2, t1, t2):
             case _: 
                 return Error('semántico', 'Error al sumar la expresión'), None
 
-    if nodo1.tipo == Tipos.BOOL:
+    elif nodo1.tipo == Tipos.BOOL:
         match nodo2.tipo:
             #BOOLEANO + ENTERO = ERROR
             case Tipos.INT: #entero
@@ -60,7 +60,7 @@ def validar_suma(nodo1, nodo2, t1, t2):
             case _: 
                 return Error('semántico', 'Error al sumar la expresión'), None
 
-    if nodo1.tipo == Tipos.CHAR:
+    elif nodo1.tipo == Tipos.CHAR:
         match nodo2.tipo:
             #CARACTER + ENTERO = ENTERO
             case Tipos.INT: #entero
@@ -79,7 +79,7 @@ def validar_suma(nodo1, nodo2, t1, t2):
             case _: 
                 return Error('semántico', 'Error al sumar la expresión'), None
 
-    if nodo1.tipo == Tipos.STRING:
+    elif nodo1.tipo == Tipos.STRING:
         match nodo2.tipo:
             #CADENA + ENTERO = CADENA
             case Tipos.INT: #entero
