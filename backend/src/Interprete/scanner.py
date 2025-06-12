@@ -84,24 +84,24 @@ def t_PRINT(t):
     return t
 
 def t_IF(t):
-    r'[Ii][Ff]\b'
+    r'[Ii][Ff]'
     t.value = str(t.value)
     t.value = t.value.lower()
     return t
 
 def t_ELSE(t):
-    r'[Ee][Ll][Ss][Ee]\b'
+    r'[Ee][Ll][Ss][Ee]'
     t.value = str(t.value)
     t.value = t.value.lower()
     return t
 
 def t_TRUE(t):
-    r'[Tt][Rr][Uu][Ee]\b'
+    r'[Tt][Rr][Uu][Ee]'
     t.value = 'true'
     return t
 
 def t_FALSE(t):
-    r'[Ff][Aa][Ll][Ss][Ee]\b'
+    r'[Ff][Aa][Ll][Ss][Ee]'
     try:
         t.value = 'false'
     except ValueError:
@@ -110,7 +110,7 @@ def t_FALSE(t):
     return t
 
 def t_TIPO_FLOAT(t):
-    r'[Ff][Ll][Oo][Aa][Tt]\b'
+    r'[Ff][Ll][Oo][Aa][Tt]'
     try:
         t.value = str(t.value)
     except ValueError:

@@ -275,5 +275,5 @@ class Visitor_Output(Visitor):
                 if isinstance(resultado, Error):
                     return resultado
         else:
-            nodo.instrucciones_else_if.accept(self)
+            nodo.elseif.accept(self)
         st.exit_scope()

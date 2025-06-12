@@ -49,7 +49,7 @@ def p_lista_sentencias(t):
 
 def p_una_sentencia(t):
     '''sentencias : sentencia'''
-    t[0] = []
+    t[0] = list()
     t[0].append(t[1])  # Crea una lista con la única sentencia
 
 def p_sentencia_print(t):
@@ -128,6 +128,10 @@ def p_expresion_relacionales(t):
     '''expresion : relacional'''
     t[0] = t[1] # SE ASIGNA LA COMPARACION RELACIONAL A t[0]
 
+def p_expresion_logica(t):
+    '''expresion : logica'''
+    t[0] = t[1]  # SE ASIGNA LA EXPRESION LOGICA A t[0]
+
 def p_relacional_igualque(t):
     '''relacional : expresion IGUALQUE expresion'''
     # SE CREA UN NODO IGUALQUE CON LOS HIJOS t[1] Y t[3]
@@ -158,10 +162,6 @@ def p_relacional_menorigualque(t):
     # SE CREA UN NODO MENORIGUALQUE CON LOS HIJOS t[1] Y t[3]
     t[0] = MenorIgualQue(t[1], t[3])
 
-def p_expresion_logica(t):
-    '''expresion : logica'''
-    t[0] = t[1]  # SE ASIGNA LA EXPRESION LOGICA A t[0]
-
 def p_logica_and(t):
     '''logica : expresion AND expresion'''
     # SE CREA UN NODO AND CON LOS HIJOS t[1] Y t[3]
@@ -181,6 +181,16 @@ def p_logica_xor(t):
     '''logica : expresion XOR expresion'''
     # SE CREA UN NODO XOR CON LOS HIJOS t[1] Y t[3]
     t[0] = Xor(t[1], t[3])
+
+def p_logica_true(t):
+    '''logica : TRUE'''
+    # SE ASIGNA EL VALOR TRUE A t[0]
+    t[0] = Nativo(Tipos.BOOL, True)
+
+def p_logica_false(t):
+    '''logica : FALSE'''
+    # SE ASIGNA EL VALOR FALSE A t[0]
+    t[0] = Nativo(Tipos.BOOL, False)
 
 def p_expresion_entero(t):
     '''expresion : ENTERO'''
@@ -219,16 +229,18 @@ def p_expresion_agrupada(t):
 
 def p_sentencia_if_simple(t):
     '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
+    print("Se ha encontrado un IF simple")
     t[0] = If(t[3], t[6])
 
 def p_sentencia_if_else(t):
-    '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER else'''
+    '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER ELSE LLAVE_IZQ selse LLAVE_DER'''
     # SE CREA UN NODO IF CON LA CONDICION Y LAS INSTRUCCIONES
-    t[0] = IfElse(t[3], t[6], t[8])
+    print("Se ha encontrado un IF con ELSE")
+    t[0] = IfElse(t[3], t[6], t[10])
 
 def p_sentencia_else(t):
-    '''else : ELSE LLAVE_IZQ sentencias LLAVE_DER'''
-    t[0] = Else(t[3])
+    '''selse : sentencias'''
+    t[0] = Else(t[1])
 
 def p_sentencia_if_else_if(t):
     '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER ELSE sentenciaIf'''
