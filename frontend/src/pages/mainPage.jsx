@@ -1,11 +1,12 @@
 import './mainPage.css';
 import { useRef } from 'react';
 import Swal from 'sweetalert2';
-import { getInfo } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
+import { getParse } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
 
 const MainPage = () => {
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
+    const resultadoRef = useRef(null); // Nuevo ref para el textarea de salida
 
     const handleFileButtonClick = () => {
         fileInputRef.current.value = ''; // Permite cargar el mismo archivo varias veces
@@ -36,7 +37,17 @@ const MainPage = () => {
 
     const handleInterpretarClick = async () => {
         try {
-            const response = await getInfo();
+            if (resultadoRef.current) {
+                resultadoRef.current.value = '';
+            }
+            const codigo = textareaRef.current ? textareaRef.current.value : '';
+            const data = {
+                code: codigo,
+            }
+            const response = await getParse(data); // Envía el código al backend
+            if (resultadoRef.current) {
+                resultadoRef.current.value = response.consola; // Muestra la respuesta en el textarea de salida
+            }
             console.log(response);
         } catch (error) {
             console.error('Error al interpretar:', error);
@@ -85,7 +96,7 @@ const MainPage = () => {
                         <button className='editor-buttons'>AST</button>
                     </div>
 
-                    <textarea id="resultado" readOnly></textarea>
+                    <textarea id="resultado" readOnly ref={resultadoRef}></textarea>
                 </div>
             </div>
         </div>
