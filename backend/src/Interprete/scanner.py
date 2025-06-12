@@ -5,6 +5,7 @@ import os
 tokens = (
     'IGUAL',
     'PUNTO_Y_COMA',
+    'DOS_PUNTOS',
     'COMA',
     'TRUE',
     'FALSE',
@@ -44,9 +45,15 @@ tokens = (
     'XOR',
     'IF',
     'ELSE',
+    'SWITCH',
+    'CASE',
+    'DEFAULT',
     'LLAVE_IZQ',
     'LLAVE_DER',
     'WHILE',
+    'FOR',
+    'DO',
+    'BREAK',
 )
 
 # EXPRESIONES REGULARES PARA PALABRAS Y SÍMBOLOS RESERVADOS DEL LENGUAJE
@@ -68,6 +75,7 @@ t_AND = r'&&'
 t_OR = r'\|\|'
 t_NOT = r'!'
 t_XOR = r'\^'
+t_DOS_PUNTOS = r':'
 t_PUNTO_Y_COMA = r';'
 t_COMA = r','
 t_DIVISION = r'/'
@@ -96,8 +104,44 @@ def t_ELSE(t):
     t.value = t.value.lower()
     return t
 
+def t_SWITCH(t):
+    r'[Ss][Ww][Ii][Tt][Cc][Hh]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_CASE(t):
+    r'[Cc][Aa][Ss][Ee]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_DEFAULT(t):
+    r'[Dd][Ee][Ff][Aa][Uu][Ll][Tt]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
 def t_WHILE(t):
     r'[Ww][Hh][Ii][Ll][Ee]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_FOR(t):
+    r'[Ff][Oo][Rr]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_DO(t):
+    r'[Dd][Oo]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_BREAK(t):
+    r'[Bb][Rr][Ee][Aa][Kk]'
     t.value = str(t.value)
     t.value = t.value.lower()
     return t

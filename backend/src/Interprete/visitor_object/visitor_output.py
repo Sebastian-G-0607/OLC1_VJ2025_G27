@@ -287,6 +287,26 @@ class Visitor_Output(Visitor):
             print(error)
             return error
         
+    def visit_Incremento(self, nodo: Nodo):
+        valor, tipo = st.get_variable(nodo.variable)
+        if isinstance(valor, Error):
+            return valor
+        if tipo not in [Tipos.INT, Tipos.FLOAT]:
+            error = Error("semántico", f'La variable {nodo.variable} debe ser de tipo entero o flotante para poder incrementarla')
+            print(error)
+            return error
+        st.update_variable(nodo.variable, valor + 1)
+
+    def visit_Decremento(self, nodo: Nodo):
+        valor, tipo = st.get_variable(nodo.variable)
+        if isinstance(valor, Error):
+            return valor
+        if tipo not in [Tipos.INT, Tipos.FLOAT]:
+            error = Error("semántico", f'La variable {nodo.variable} debe ser de tipo entero o flotante para poder decrementarla')
+            print(error)
+            return error
+        st.update_variable(nodo.variable, valor - 1)    
+
     def visit_If(self, nodo: Nodo):
         st.new_scope(f'if_{nodo.id}')
         condicion = nodo.condicion.accept(self)
@@ -374,4 +394,37 @@ class Visitor_Output(Visitor):
                 if isinstance(resultado, Error):
                     return resultado
             condicion = nodo.condition.accept(self) # Re-evaluar la condición al inicio del ciclo
+        st.exit_scope()
+
+    def visit_For(self, nodo: Nodo):
+        st.new_scope(f'for_{nodo.id}')
+
+        #PRIMERO, SE ACEPTA LA DECLARACIÓN O ASIGNACIÓN DE LA VARIABLE DE CONTROL
+        incio = nodo.declaracion.accept(self)
+        if isinstance(incio, Error):
+            return incio
+        
+        #SE ACEPTA LA CONDICIÓN DEL BUCLE Y SE COMPRUEBA SI ES UN ERROR O NO ES BOOLEANA
+        condicion = nodo.condicion.accept(self)
+        if isinstance(condicion, Error):
+            return condicion
+        if nodo.condicion.tipo != Tipos.BOOL:
+            error = Error("semántico", f'La condición de un For debe ser de tipo booleano')
+            print(error)
+            return error
+        
+        #SE RECORREN LAS INSTRUCCIONES DEL BUCLE MIENTRAS LA CONDICIÓN SEA VERDADERA
+        while condicion:
+            st.new_scope(f'for_instrucciones_{nodo.id}')
+            for instruccion in nodo.instrucciones:
+                resultado = instruccion.accept(self)
+                if isinstance(resultado, Error):
+                    return resultado
+            # Actualizar la variable de control del bucle
+            nodo.actualizacion.accept(self)
+            # Re-evaluar la condición al final de cada iteración
+            condicion = nodo.condicion.accept(self)
+            st.exit_scope() #se sale del scope de las instrucciones del for
+        
+        #SE SALE DEL SCOPE DEL BUCLE FOR
         st.exit_scope()

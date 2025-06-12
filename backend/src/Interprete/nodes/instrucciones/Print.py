@@ -4,6 +4,7 @@ from backend.src.Interprete.simbol.RaizArbol import Arbol
 class Println(Nodo):
     # NODO PARA LA INSTRUCCION PRINTLN
     def __init__(self, expresion, linea=None, columna=None):
+        super().__init__(linea, columna)
         self.expresion = expresion
 
     def __repr__(self):

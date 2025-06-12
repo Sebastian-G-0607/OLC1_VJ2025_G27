@@ -12,6 +12,9 @@ from backend.src.Interprete.nodes.expresiones.Not import Not
 from backend.src.Interprete.nodes.expresiones.Or import Or
 from backend.src.Interprete.nodes.expresiones.Umenos import Umenos
 from backend.src.Interprete.nodes.expresiones.Xor import Xor
+from backend.src.Interprete.nodes.instrucciones.Decremento import Decremento
+from backend.src.Interprete.nodes.instrucciones.For import For
+from backend.src.Interprete.nodes.instrucciones.Incremento import Incremento
 from backend.src.Interprete.nodes.instrucciones.While import While
 from backend.src.Interprete.nodes.instrucciones.Asignacion import Asignacion
 from backend.src.Interprete.nodes.instrucciones.Declaracion import Declaracion
@@ -74,6 +77,45 @@ def p_sentencia_while(t):
     '''sentencia : WHILE PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
     # SE CREA UN NODO WHILE CON LA CONDICION Y LAS INSTRUCCIONES
     t[0] = While(t[3], t[6])  # Crea un nodo While con la condición y las sentencias
+
+def p_sentencia_for(t):
+    '''sentencia : FOR PARENTESIS_IZQ inicio_for condicion PUNTO_Y_COMA actualizacion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
+    # SE CREA UN NODO FOR CON LA DECLARACION, CONDICION, ACTUALIZACION Y LAS INSTRUCCIONES
+    t[0] = For(t[3], t[4], t[6], t[9])  # Crea un nodo For con la declaración, condición, actualización y sentencias
+
+def p_inicio_for_asignacion(t):
+    '''inicio_for : asignacion'''
+    # SE CREA UN NODO FOR CON LA ASIGNACION
+    t[0] = t[1]  # La asignación se asigna directamente
+
+def p_inicio_for_declaracion(t):
+    '''inicio_for : declaracion_valor'''
+    t[0] = t[1]  # La declaración o asignación se asigna directamente
+
+def p_actualizacion_incremento(t):
+    '''actualizacion : IDENTIFICADOR INCREMENTO'''
+    # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION DE INCREMENTO
+    t[0] = Incremento(t[1])  # Crea un nodo Incremento con el identificador
+
+def p_actualizacion_decremento(t):
+    '''actualizacion : IDENTIFICADOR DECREMENTO'''
+    # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION DE DECREMENTO
+    t[0] = Decremento(t[1])  # Crea un nodo Decremento con el identificador
+
+def p_actualizacion_asignacion(t):
+    '''actualizacion : IDENTIFICADOR IGUAL expresion'''
+    # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION
+    t[0] = Asignacion(t[1], t[3])  # Crea un nodo Asignacion con el identificador y la expresión
+
+def p_sentencia_incremento(t):
+    '''sentencia : IDENTIFICADOR INCREMENTO PUNTO_Y_COMA'''
+    # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION DE INCREMENTO
+    t[0] = Incremento(t[1])
+
+def p_sentencia_decremento(t):
+    '''sentencia : IDENTIFICADOR DECREMENTO PUNTO_Y_COMA'''
+    # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION DE DECREMENTO
+    t[0] = Decremento(t[1])
 
 def p_asignacion(t):
     '''asignacion : IDENTIFICADOR IGUAL expresion PUNTO_Y_COMA'''
@@ -203,6 +245,11 @@ def p_logica_false(t):
     '''logica : FALSE'''
     # SE ASIGNA EL VALOR FALSE A t[0]
     t[0] = Nativo(Tipos.BOOL, False)
+
+def p_logica_identificador(t):
+    '''logica : IDENTIFICADOR'''
+    # SE CREA UN NODO ACCESO VARIABLE CON EL IDENTIFICADOR
+    t[0] = AccesoVariable(t[1])  # Retorna el acceso a la variable
 
 def p_expresion_entero(t):
     '''expresion : ENTERO'''
