@@ -1,7 +1,7 @@
 from backend.src.Interprete.nodes.Nodo import Nodo
 
 class DiferenteQue(Nodo):
-    def __init__(self, izquierda, derecha):
+    def __init__(self, izquierda, derecha, linea=None, columna=None):
         self.izquierda = izquierda
         self.derecha = derecha
 

@@ -54,6 +54,7 @@ tokens = (
     'FOR',
     'DO',
     'BREAK',
+    'CONTINUE',
 )
 
 # EXPRESIONES REGULARES PARA PALABRAS Y SÍMBOLOS RESERVADOS DEL LENGUAJE
@@ -66,14 +67,13 @@ t_MENOS = r'-'
 t_POTENCIA = r'\*\*'
 t_MULTIPLICACION = r'\*'
 t_DIFERENTEQUE = r'!='
-t_NEGACION = r'!'
+t_NOT = r'!'
 t_MAYORIGUALQUE = r'>='
 t_MAYORQUE = r'>'
 t_MENORIGUALQUE = r'<='
 t_MENORQUE = r'<'
 t_AND = r'&&'
 t_OR = r'\|\|'
-t_NOT = r'!'
 t_XOR = r'\^'
 t_DOS_PUNTOS = r':'
 t_PUNTO_Y_COMA = r';'
@@ -142,6 +142,12 @@ def t_DO(t):
 
 def t_BREAK(t):
     r'[Bb][Rr][Ee][Aa][Kk]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_CONTINUE(t):
+    r'[Cc][Oo][Nn][Tt][Ii][Nn][Uu][Ee]'
     t.value = str(t.value)
     t.value = t.value.lower()
     return t

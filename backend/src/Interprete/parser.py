@@ -12,7 +12,10 @@ from backend.src.Interprete.nodes.expresiones.Not import Not
 from backend.src.Interprete.nodes.expresiones.Or import Or
 from backend.src.Interprete.nodes.expresiones.Umenos import Umenos
 from backend.src.Interprete.nodes.expresiones.Xor import Xor
+from backend.src.Interprete.nodes.instrucciones.Break import Break
+from backend.src.Interprete.nodes.instrucciones.Continue import Continue
 from backend.src.Interprete.nodes.instrucciones.Decremento import Decremento
+from backend.src.Interprete.nodes.instrucciones.DoWhile import DoWhile
 from backend.src.Interprete.nodes.instrucciones.For import For
 from backend.src.Interprete.nodes.instrucciones.Incremento import Incremento
 from backend.src.Interprete.nodes.instrucciones.While import While
@@ -37,9 +40,12 @@ precedence = (
     ('right','UMENOS'),
     ('nonassoc', 'POTENCIA'), 
     ('left','MULTIPLICACION','DIVISION'),
+    ('left','MAS','MENOS'),
     ('left','IGUALQUE','DIFERENTEQUE'),
     ('left','MAYORQUE','MENORQUE'),
     ('left','MAYORIGUALQUE','MENORIGUALQUE'),
+    ('right','NOT'),
+    ('left', 'XOR','AND'),
 )
 
 # ANALISIS SINTÁCTICO
@@ -57,6 +63,10 @@ def p_una_sentencia(t):
     t[0] = list()
     t[0].append(t[1])  # Crea una lista con la única sentencia
 
+def p_sentencia_empty(t):
+    '''sentencias : '''
+    pass
+
 def p_sentencia_print(t):
     '''sentencia : PRINT PARENTESIS_IZQ expresion PARENTESIS_DER PUNTO_Y_COMA'''
     t[0] = Println(t[3])  # Crea un nodo Println con la expresión a imprimir
@@ -73,6 +83,16 @@ def p_sentencia_if(t):
     '''sentencia : sentenciaIf'''
     t[0] = t[1]  # La sentencia es una sentencia If, se asigna directamente
 
+def p_sentencia_bucle_break(t):
+    '''sentencia : BREAK PUNTO_Y_COMA'''
+    # SE CREA UN NODO BREAK PARA SALIR DEL BUCLE
+    t[0] = Break(t[1])  # Crea una lista con el nodo Break
+
+def p_sentencia_bucle_continue(t):
+    '''sentencia : CONTINUE PUNTO_Y_COMA'''
+    # SE CREA UN NODO CONTINUE PARA SALTAR A LA SIGUIENTE ITERACION DEL BUCLE
+    t[0] = Continue(t[1])  # Crea una lista con el nodo Continue
+
 def p_sentencia_while(t):
     '''sentencia : WHILE PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
     # SE CREA UN NODO WHILE CON LA CONDICION Y LAS INSTRUCCIONES
@@ -82,6 +102,11 @@ def p_sentencia_for(t):
     '''sentencia : FOR PARENTESIS_IZQ inicio_for condicion PUNTO_Y_COMA actualizacion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
     # SE CREA UN NODO FOR CON LA DECLARACION, CONDICION, ACTUALIZACION Y LAS INSTRUCCIONES
     t[0] = For(t[3], t[4], t[6], t[9])  # Crea un nodo For con la declaración, condición, actualización y sentencias
+
+def p_sentencia_do_while(t):
+    '''sentencia : DO LLAVE_IZQ sentencias LLAVE_DER WHILE PARENTESIS_IZQ condicion PARENTESIS_DER'''
+    # SE CREA UN NODO DO WHILE CON LAS INSTRUCCIONES Y LA CONDICION
+    t[0] = DoWhile(t[3], t[7])  # Crea un nodo While con la condición y las sentencias, indicando que es un do-while
 
 def p_inicio_for_asignacion(t):
     '''inicio_for : asignacion'''
@@ -336,6 +361,16 @@ def p_tipo_str(t):
 def find_column(input, token):
     line_start = input.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
+
+# Computes column
+#     p is a production rule's stack
+#     i is the number of item in p
+# def find_column(p, i):
+#     last_cr = p.lexer.lexdata.rfind('\n', 0, p.lexpos(i))
+#     if last_cr < 0:
+#         last_cr = 0
+#     column = (p.lexpos(i) - last_cr) + 1
+#     return column
 
 def p_error(t):
     if t:

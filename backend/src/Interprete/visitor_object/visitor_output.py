@@ -1,3 +1,5 @@
+from backend.src.Interprete.nodes.instrucciones.Break import Break
+from backend.src.Interprete.nodes.instrucciones.Continue import Continue
 from backend.src.Interprete.nodes.nativos.Nativo import Nativo
 from backend.src.Interprete.semanticas.semanticaDeclaracion import validarDeclaracion
 from backend.src.Interprete.semanticas.semanticaSuma import validar_suma
@@ -131,7 +133,7 @@ class Visitor_Output(Visitor):
     
     def visit_DiferenteQue(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
-        if isinstance(valorIzq. Error):
+        if isinstance(valorIzq, Error):
             return valorIzq
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
@@ -269,7 +271,7 @@ class Visitor_Output(Visitor):
         if nodo.valor is None:
             valor, tipo = validarDeclaracion(nodo)
             nodo.tipo = tipo  # Actualizar el tipo del nodo
-            st.add_variable(nodo.id, tipo, nodo.valor)
+            st.add_variable(nodo.id, tipo, valor)
             return
         
         #SI NO TIENE VALOR, SE ACEPTA EL VALOR Y SE VERIFICA SU TIPO
@@ -320,17 +322,31 @@ class Visitor_Output(Visitor):
             return error
         
         if condicion:
+            if nodo.instrucciones is None:
+                return
             for instruccion in nodo.instrucciones:
                 resultado = instruccion.accept(self)
                 if isinstance(resultado, Error):
+                    return resultado
+                if isinstance(resultado, Break):
+                    st.exit_scope()
+                    return resultado
+                if isinstance(resultado, Continue):
                     return resultado
         st.exit_scope()
     
     def visit_Else(self, nodo: Nodo):
         st.new_scope(f'else_{nodo.id}')
+        if nodo.instrucciones is None:
+            return
         for instruccion in nodo.instrucciones:
             resultado = instruccion.accept(self)
             if isinstance(resultado, Error):
+                    return resultado
+            if isinstance(resultado, Break):
+                st.exit_scope()
+                return resultado
+            if isinstance(resultado, Continue):
                 return resultado
         st.exit_scope()
 
@@ -343,13 +359,19 @@ class Visitor_Output(Visitor):
         #SE COMPRUEBA SI EL TIPO DE LA CONDICIÓN ES BOOLEANO
         if nodo.condicion.tipo != Tipos.BOOL:
             error = Error("semántico", f'La condición de un If debe ser de tipo booleano')
-            print(error)
             return error
         
         if condicion:
+            if nodo.instrucciones is None:
+                return
             for instruccion in nodo.instrucciones_if:
                 resultado = instruccion.accept(self)
                 if isinstance(resultado, Error):
+                    return resultado
+                if isinstance(resultado, Break):
+                    st.exit_scope()
+                    return resultado
+                if isinstance(resultado, Continue):
                     return resultado
         else:
             nodo.instrucciones_else.accept(self)
@@ -367,16 +389,22 @@ class Visitor_Output(Visitor):
             print(error)
             return error
         
+        if nodo.instrucciones is None:
+            return
         if condicion:
             for instruccion in nodo.instrucciones_if:
                 resultado = instruccion.accept(self)
                 if isinstance(resultado, Error):
                     return resultado
+                if isinstance(resultado, Break):
+                    st.exit_scope()
+                    return resultado
+                if isinstance(resultado, Continue):
+                    return resultado
         else:
             nodo.elseif.accept(self)
         st.exit_scope()
 
-    
     def visit_While(self, nodo: Nodo):
         st.new_scope(f'while_{nodo.id}')
         condicion = nodo.condition.accept(self)
@@ -388,11 +416,20 @@ class Visitor_Output(Visitor):
             print(error)
             return error
         
+        if nodo.instructions is None:
+            return
+        
         while condicion:
             for instruccion in nodo.instructions:
+                #SI ES BREAK, SE SALE DEL BUCLE
                 resultado = instruccion.accept(self) # Ejecutar cada instrucción del ciclo
                 if isinstance(resultado, Error):
                     return resultado
+                if isinstance(resultado, Break):
+                    st.exit_scope()
+                    return
+                if isinstance(resultado, Continue):
+                    break
             condicion = nodo.condition.accept(self) # Re-evaluar la condición al inicio del ciclo
         st.exit_scope()
 
@@ -408,6 +445,7 @@ class Visitor_Output(Visitor):
         condicion = nodo.condicion.accept(self)
         if isinstance(condicion, Error):
             return condicion
+        
         if nodo.condicion.tipo != Tipos.BOOL:
             error = Error("semántico", f'La condición de un For debe ser de tipo booleano')
             print(error)
@@ -416,10 +454,22 @@ class Visitor_Output(Visitor):
         #SE RECORREN LAS INSTRUCCIONES DEL BUCLE MIENTRAS LA CONDICIÓN SEA VERDADERA
         while condicion:
             st.new_scope(f'for_instrucciones_{nodo.id}')
+            if nodo.instrucciones is None:
+                return
+            
             for instruccion in nodo.instrucciones:
+                #SI ES BREAK, SE SALE DEL BUCLE
                 resultado = instruccion.accept(self)
+
                 if isinstance(resultado, Error):
                     return resultado
+                if isinstance(resultado, Break):
+                    st.exit_scope() #se sale del scope de las declaraciones del for
+                    st.exit_scope() #se sale del scope de las instrucciones del for
+                    return
+                if isinstance(resultado, Continue):
+                    break
+
             # Actualizar la variable de control del bucle
             nodo.actualizacion.accept(self)
             # Re-evaluar la condición al final de cada iteración
@@ -428,3 +478,47 @@ class Visitor_Output(Visitor):
         
         #SE SALE DEL SCOPE DEL BUCLE FOR
         st.exit_scope()
+
+    def visit_DoWhile(self, nodo: Nodo):
+        st.new_scope(f'do_while_{nodo.id}')
+
+        # Primero, ejecutamos las instrucciones al menos una vez
+        for instruccion in nodo.instrucciones:
+            resultado = instruccion.accept(self)
+            if isinstance(resultado, Error):
+                return resultado
+            if isinstance(resultado, Break):
+                st.exit_scope()
+                return resultado
+            if isinstance(resultado, Continue):
+                return resultado
+            
+        # Luego, evaluamos la condición
+        condicion = nodo.condicion.accept(self)
+        
+        #SE COMPRUEBA SI LA CONDICIÓN ES UN ERROR O NO ES BOOLEANA
+        if isinstance(condicion, Error):
+            return condicion
+        if nodo.condicion.tipo != Tipos.BOOL:
+            error = Error("semántico", f'La condición de un DoWhile debe ser de tipo booleano')
+            return error
+        
+        while condicion:
+            for instruccion in nodo.instrucciones:
+                resultado = instruccion.accept(self)
+                if isinstance(resultado, Error):
+                    return resultado
+                if isinstance(resultado, Break):
+                    st.exit_scope()
+                    return resultado
+                if isinstance(resultado, Continue):
+                    return resultado
+            condicion = nodo.condicion.accept(self)
+
+        st.exit_scope()
+
+    def visit_Break(self, nodo: Nodo):
+            return nodo
+
+    def visit_Continue(self, nodo: Nodo, ciclo = False):
+        return nodo
