@@ -4,7 +4,7 @@ class While(Nodo):
     _contador = 0  # Contador de instancias de While
 
     def __init__(self, condition, instructions, line = None, column = None):
-        super().__init__(line, column)
+        super().__init__(None, line, column)
         self.condition = condition  # Condición del while
         self.instructions = instructions  # Instrucciones a ejecutar en el bucle
         While._contador += 1

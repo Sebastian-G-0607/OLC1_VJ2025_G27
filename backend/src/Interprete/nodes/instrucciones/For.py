@@ -4,7 +4,7 @@ class For(Nodo):
     _contador = 0
 
     def __init__(self, declaracion, condicion, actualizacion, instrucciones, linea = None, columna = None):
-        super().__init__(linea, columna)
+        super().__init__(None, linea, columna)
         self.declaracion = declaracion  # Variable de control del bucle
         self.condicion = condicion     # Valor de la condición del bucle
         self.actualizacion = actualizacion            # Valor final del bucle

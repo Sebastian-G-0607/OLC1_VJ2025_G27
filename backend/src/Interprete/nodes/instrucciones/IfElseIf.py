@@ -4,7 +4,7 @@ class IfElseIf(Nodo):
     _contador = 0
 
     def __init__(self, condicion, instrucciones_if, elseif, linea = None, columna = None):
-        super().__init__(linea, columna)
+        super().__init__(None, linea, columna)
         self.condicion = condicion
         self.instrucciones_if = instrucciones_if
         self.elseif = elseif

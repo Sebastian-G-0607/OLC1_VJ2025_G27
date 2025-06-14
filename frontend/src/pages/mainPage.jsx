@@ -8,6 +8,19 @@ const MainPage = () => {
     const textareaRef = useRef(null);
     const resultadoRef = useRef(null); // Nuevo ref para el textarea de salida
 
+    const handleTabInTextarea = (e) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const textarea = textareaRef.current;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            // Inserta el tabulador en la posición del cursor
+            textarea.value = textarea.value.substring(0, start) + '\t' + textarea.value.substring(end);
+            // Mueve el cursor después del tabulador
+            textarea.selectionStart = textarea.selectionEnd = start + 1;
+        }
+    };
+
     const handleFileButtonClick = () => {
         fileInputRef.current.value = ''; // Permite cargar el mismo archivo varias veces
         fileInputRef.current.click();
@@ -86,6 +99,9 @@ const MainPage = () => {
                         id="editor"
                         placeholder="Escribe o carga tu código aquí..."
                         ref={textareaRef}
+                        spellCheck={false}
+                        autoCorrect="off"
+                        onKeyDown={handleTabInTextarea}
                     ></textarea>
                 </div>
                 <div className="output-area">
@@ -96,7 +112,7 @@ const MainPage = () => {
                         <button className='editor-buttons'>AST</button>
                     </div>
 
-                    <textarea id="resultado" readOnly ref={resultadoRef}></textarea>
+                    <textarea id="resultado" readOnly ref={resultadoRef} spellCheck={false}></textarea>
                 </div>
             </div>
         </div>

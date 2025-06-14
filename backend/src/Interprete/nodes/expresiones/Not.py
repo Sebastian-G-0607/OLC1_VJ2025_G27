@@ -1,7 +1,8 @@
 from backend.src.Interprete.nodes.Nodo import Nodo
 
 class Not(Nodo):
-    def __init__(self, expresion):
+    def __init__(self, expresion, linea=None, columna=None):
+        super().__init__(None, linea, columna)
         self.expresion = expresion
 
     def __str__(self):

@@ -26,6 +26,7 @@ from backend.src.Interprete.nodes.Nodo import Nodo
 from backend.src.Interprete.simbol.RaizArbol import Arbol
 from backend.src.Interprete.errors.Error import Error
 from backend.src.Interprete.simbol.InstanciaTabla import st
+from backend.src.Interprete.simbol.ListaErrores import errores
 
 class Visitor_Output(Visitor):
     def __init__(self, Arbol: Arbol):
@@ -39,11 +40,13 @@ class Visitor_Output(Visitor):
         valorIzq = nodo.izquierda.accept(self)
         #SE COMPRUEBA SI EL VALOR IZQUIERDO ES UN ERROR
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         #SE COMPRUEBA SI EL VALOR DERECHO ES UN ERROR
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_suma(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
@@ -51,21 +54,25 @@ class Visitor_Output(Visitor):
     def visit_Resta(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_resta(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
-        nodo.tipo = tipo 
+        nodo.tipo = tipo
         return resultado
-    
+
     def visit_Multiplicacion(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_multiplicacion(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo
         return resultado
@@ -73,10 +80,12 @@ class Visitor_Output(Visitor):
     def visit_Division(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         if valorDer == 0:
             raise ZeroDivisionError("División por cero no permitida.")
         resultado, tipo = validar_division(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
@@ -87,11 +96,13 @@ class Visitor_Output(Visitor):
         valorIzq = nodo.izquierda.accept(self)
         #SE COMPRUEBA SI EL VALOR IZQUIERDO ES UN ERROR
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         #SE COMPRUEBA SI EL VALOR DERECHO ES UN ERROR
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_potencia(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
@@ -100,7 +111,8 @@ class Visitor_Output(Visitor):
         valor = nodo.expresion.accept(self)
         #SE COMPRUEBA SI EL VALOR ES UN ERROR
         if isinstance(valor, Error):
-            return valor
+            errores.append(valor)
+            return
         resultado, tipo = validar_Umenos(nodo.expresion, valor)
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
@@ -109,11 +121,13 @@ class Visitor_Output(Visitor):
         valorIzq = nodo.izquierda.accept(self)
         #SE COMPRUEBA SI EL VALOR IZQUIERDO ES UN ERROR
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         #SE COMPRUEBA SI EL VALOR DERECHO ES UN ERROR
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         if valorDer == 0:
             raise ZeroDivisionError("División por cero no permitida.")
         resultado, tipo = validar_modulo(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
@@ -123,10 +137,12 @@ class Visitor_Output(Visitor):
     def visit_IgualQue(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_igual(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo
         return resultado
@@ -134,23 +150,27 @@ class Visitor_Output(Visitor):
     def visit_DiferenteQue(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
-            return valorDer
-        resulatado, tipo = validar_diferenciacion(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+            errores.append(valorDer)
+            return
+        resultado, tipo = validar_diferenciacion(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo
-        return resulatado
-    
+        return resultado
+
     def visit_MayorQue(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         #SE COMPRUEBA SI EL VALOR IZQUIERDO ES UN ERROR
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         #SE COMPRUEBA SI EL VALOR DERECHO ES UN ERROR
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_Mayorque(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
@@ -159,11 +179,13 @@ class Visitor_Output(Visitor):
         valorIzq = nodo.izquierda.accept(self)
         #SE COMPRUEBA SI EL VALOR IZQUIERDO ES UN ERROR
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         #SE COMPRUEBA SI EL VALOR DERECHO ES UN ERROR
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_Mayorigualque(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
@@ -171,10 +193,12 @@ class Visitor_Output(Visitor):
     def visit_MenorQue(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_menor(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo
         return resultado
@@ -183,11 +207,13 @@ class Visitor_Output(Visitor):
         valorIzq = nodo.izquierda.accept(self)
         #SE COMPRUEBA SI EL VALOR IZQUIERDO ES UN ERROR
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         #SE COMPRUEBA SI EL VALOR DERECHO ES UN ERROR
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_Menorigualque(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
@@ -195,10 +221,12 @@ class Visitor_Output(Visitor):
     def visit_And(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_AND(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo
         return resultado
@@ -206,18 +234,21 @@ class Visitor_Output(Visitor):
     def visit_Or(self, nodo: Nodo):
         valorIzq = nodo.izquierda.accept(self)
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_OR(nodo.izquierda, nodo.derecha , valorIzq, valorDer)
-        nodo.tipo = tipo 
+        nodo.tipo = tipo
         return resultado
-    
+
     def visit_Not(self, nodo: Nodo):
         valor = nodo.expresion.accept(self)
         if isinstance(valor, Error):
-            return valor
+            errores.append(valor)
+            return
         resultado, tipo = validar_Not(nodo.expresion, valor)
         nodo.tipo = tipo
         return resultado
@@ -226,22 +257,27 @@ class Visitor_Output(Visitor):
         valorIzq = nodo.izquierda.accept(self)
         #SE COMPRUEBA SI EL VALOR IZQUIERDO ES UN ERROR
         if isinstance(valorIzq, Error):
-            return valorIzq
+            errores.append(valorIzq)
+            return
         valorDer = nodo.derecha.accept(self)
         #SE COMPRUEBA SI EL VALOR DERECHO ES UN ERROR
         if isinstance(valorDer, Error):
-            return valorDer
+            errores.append(valorDer)
+            return
         resultado, tipo = validar_Xor(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
 
     def visit_Println(self, nodo: Nodo):
         valor = nodo.expresion.accept(self)
+        if(isinstance(valor, Error)):
+            return
         self.Arbol.Print(str(valor))
     
     def visit_Asignacion(self, nodo: Nodo):
         valor = nodo.valor.accept(self)
         if isinstance(valor, Error):
+            errores.append(valor)
             return valor
         #OBTENGO EL TIPO DE LA VARIABLE
         tipoVariable = st.get_variable(nodo.id)[1]
@@ -250,8 +286,9 @@ class Visitor_Output(Visitor):
             st.update_variable(nodo.id, valor)
             return
         else:
-            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} al una variable de tipo {tipoVariable}',)
+            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} a una variable de tipo {tipoVariable}',)
             print(error)
+            errores.append(error)
             return error
 
     def visit_AccesoVariable(self, nodo: Nodo):
@@ -262,6 +299,7 @@ class Visitor_Output(Visitor):
         except KeyError:
             error = Error("semántico", f'La variable {nodo.id} no está declarada')
             print(error)
+            errores.append(error)
             return error
         nativo = Nativo(tipo, simbolo)
         return nativo.accept(self)
@@ -271,7 +309,7 @@ class Visitor_Output(Visitor):
         if nodo.valor is None:
             valor, tipo = validarDeclaracion(nodo)
             nodo.tipo = tipo  # Actualizar el tipo del nodo
-            st.add_variable(nodo.id, tipo, valor)
+            st.add_variable(nodo.id, tipo, valor, nodo.linea, nodo.columna)
             return
         
         #SI NO TIENE VALOR, SE ACEPTA EL VALOR Y SE VERIFICA SU TIPO
@@ -279,14 +317,21 @@ class Visitor_Output(Visitor):
         if isinstance(valor, Error):
             return valor
         tipoVariable = validarDeclaracion(nodo)[1]
-        nodo.tipo = tipoVariable # Actualizar el tipo del nodo        
+        nodo.tipo = tipoVariable # Actualizar el tipo del nodo
+
+        #VERIFICO SI ES ENTERO, SI ES ENTERO PUEDE RECIBIR ENTERO O BOOLEAN
+        if nodo.tipo == Tipos.INT and nodo.valor.tipo == Tipos.BOOL:
+            valor = int(valor)
+            st.add_variable(nodo.id, tipoVariable, valor, nodo.linea, nodo.columna)
+            return
+
         #VERIFICO SI EL TIPO DE LA VARIABLE ES EL MISMO QUE EL DEL VALOR
         if nodo.tipo == nodo.valor.tipo:
-            st.add_variable(nodo.id, tipoVariable, valor)
+            st.add_variable(nodo.id, tipoVariable, valor, nodo.linea, nodo.columna)
             return
         else:
             error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.tipo} al una variable de tipo {tipoVariable}',)
-            print(error)
+            errores.append(error)
             return error
         
     def visit_Incremento(self, nodo: Nodo):
@@ -296,6 +341,7 @@ class Visitor_Output(Visitor):
         if tipo not in [Tipos.INT, Tipos.FLOAT]:
             error = Error("semántico", f'La variable {nodo.variable} debe ser de tipo entero o flotante para poder incrementarla')
             print(error)
+            errores.append(error)
             return error
         st.update_variable(nodo.variable, valor + 1)
 
@@ -305,6 +351,7 @@ class Visitor_Output(Visitor):
             return valor
         if tipo not in [Tipos.INT, Tipos.FLOAT]:
             error = Error("semántico", f'La variable {nodo.variable} debe ser de tipo entero o flotante para poder decrementarla')
+            errores.append(error)
             print(error)
             return error
         st.update_variable(nodo.variable, valor - 1)    
@@ -315,9 +362,10 @@ class Visitor_Output(Visitor):
         
         #SE COMPRUEBA SI LA CONDICIÓN ES UN ERROR O SI NO ES BOOLEANA
         if isinstance(condicion, Error):
-            return condicion
+            return
         if nodo.condicion.tipo != Tipos.BOOL:
             error = Error("semántico", f'La condición de un If debe ser de tipo booleano')
+            errores.append(error)
             print(error)
             return error
         
@@ -359,10 +407,12 @@ class Visitor_Output(Visitor):
         #SE COMPRUEBA SI EL TIPO DE LA CONDICIÓN ES BOOLEANO
         if nodo.condicion.tipo != Tipos.BOOL:
             error = Error("semántico", f'La condición de un If debe ser de tipo booleano')
+            print(error)
+            errores.append(error)
             return error
         
         if condicion:
-            if nodo.instrucciones is None:
+            if nodo.instrucciones_if is None:
                 return
             for instruccion in nodo.instrucciones_if:
                 resultado = instruccion.accept(self)
@@ -386,10 +436,11 @@ class Visitor_Output(Visitor):
         #SE COMPRUEBA SI EL TIPO DE LA CONDICIÓN ES BOOLEANO
         if nodo.condicion.tipo != Tipos.BOOL:
             error = Error("semántico", f'La condición de un If debe ser de tipo booleano')
+            errores.append(error)
             print(error)
             return error
         
-        if nodo.instrucciones is None:
+        if nodo.instrucciones_if is None:
             return
         if condicion:
             for instruccion in nodo.instrucciones_if:
@@ -405,6 +456,47 @@ class Visitor_Output(Visitor):
             nodo.elseif.accept(self)
         st.exit_scope()
 
+    def visit_Switch(self, nodo: Nodo):
+        if nodo.expresion is None:
+            error = Error("semántico", f'La expresión del Switch no puede ser nula')
+            print(error)
+            errores.append(error)
+            return
+
+        valorComparado = nodo.expresion.accept(self)
+        if nodo.expresion.tipo != Tipos.INT:
+            error = Error("semántico", f'La expresión del Switch debe ser de tipo entero')
+            print(error)
+            errores.append(error)
+            return
+        #SE OBTIENE EL VALOR DE LA EXPRESIÓN DEL SWITCH
+
+        #RECORRO LA LISTA DE CASOS DEL SWITCH
+        for caso in nodo.lista_casos:
+            valor = caso.condicion.accept(self)
+            if isinstance(valor, Error):
+                return valor
+            if valorComparado == valor:
+                st.new_scope(f'switch_case_{caso.id}')
+                for instruccion in caso.instrucciones_case:
+                    resultado = instruccion.accept(self)
+                st.exit_scope()
+                return
+            if valor == 'default':
+                st.new_scope(f'switch_default_{caso.id}')
+                for instruccion in caso.instrucciones_case:
+                    resultado = instruccion.accept(self)
+                st.exit_scope()
+                return
+
+    def visit_Case(self, nodo: Nodo):
+        if not isinstance(nodo.condicion, Nativo):
+            error = Error("semántico", f'La condición del Case debe ser un valor primitivo')
+            print(error)
+            errores.append(error)
+            return
+        return nodo.condicion.accept(self)
+
     def visit_While(self, nodo: Nodo):
         st.new_scope(f'while_{nodo.id}')
         condicion = nodo.condition.accept(self)
@@ -414,8 +506,9 @@ class Visitor_Output(Visitor):
         if nodo.condition.tipo != Tipos.BOOL:
             error = Error("semántico", f'La condición de un While debe ser de tipo booleano')
             print(error)
-            return error
-        
+            errores.append(error)
+            return
+
         if nodo.instructions is None:
             return
         
@@ -449,8 +542,9 @@ class Visitor_Output(Visitor):
         if nodo.condicion.tipo != Tipos.BOOL:
             error = Error("semántico", f'La condición de un For debe ser de tipo booleano')
             print(error)
-            return error
-        
+            errores.append(error)
+            return
+
         #SE RECORREN LAS INSTRUCCIONES DEL BUCLE MIENTRAS LA CONDICIÓN SEA VERDADERA
         while condicion:
             st.new_scope(f'for_instrucciones_{nodo.id}')
@@ -501,8 +595,9 @@ class Visitor_Output(Visitor):
             return condicion
         if nodo.condicion.tipo != Tipos.BOOL:
             error = Error("semántico", f'La condición de un DoWhile debe ser de tipo booleano')
-            return error
-        
+            errores.append(error)
+            return
+
         while condicion:
             for instruccion in nodo.instrucciones:
                 resultado = instruccion.accept(self)

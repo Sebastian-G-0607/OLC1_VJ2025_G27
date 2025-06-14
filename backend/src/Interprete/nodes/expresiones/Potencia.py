@@ -2,7 +2,8 @@ from backend.src.Interprete.nodes.Nodo import Nodo
 
 class Potencia(Nodo):
     # NODO PARA LA OPERACIÓN DE POTENCIA
-    def __init__(self, base, exponente):
+    def __init__(self, base, exponente, linea=None, columna=None):
+        super().__init__(None, linea, columna)
         self.izquierda = base      # Base de la potencia
         self.derecha = exponente  # Exponente de la potencia
 

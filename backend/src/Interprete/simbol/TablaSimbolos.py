@@ -9,13 +9,17 @@ class SingletonMeta(type):
             cls._instances[cls] = super(SingletonMeta, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
-
 class SymbolTable(metaclass=SingletonMeta):
     def __init__(self):
         # Inicializa los scopes y la lista de símbolos solo si no existen (patrón Singleton)
         if not hasattr(self, 'scopes'):
             self.scopes = ['global']   # Lista de scopes, comenzando por el global
             self.symbols = []          # Lista de símbolos (variables y funciones)
+
+    def clear(self):
+        """Limpia la tabla de símbolos y reinicia los scopes."""
+        self.scopes = ['global']
+        self.symbols = []
 
     @property
     def current_scope(self):

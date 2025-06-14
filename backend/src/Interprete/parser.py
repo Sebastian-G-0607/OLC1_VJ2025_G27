@@ -13,11 +13,13 @@ from backend.src.Interprete.nodes.expresiones.Or import Or
 from backend.src.Interprete.nodes.expresiones.Umenos import Umenos
 from backend.src.Interprete.nodes.expresiones.Xor import Xor
 from backend.src.Interprete.nodes.instrucciones.Break import Break
+from backend.src.Interprete.nodes.instrucciones.Case import Case
 from backend.src.Interprete.nodes.instrucciones.Continue import Continue
 from backend.src.Interprete.nodes.instrucciones.Decremento import Decremento
 from backend.src.Interprete.nodes.instrucciones.DoWhile import DoWhile
 from backend.src.Interprete.nodes.instrucciones.For import For
 from backend.src.Interprete.nodes.instrucciones.Incremento import Incremento
+from backend.src.Interprete.nodes.instrucciones.Switch import Switch
 from backend.src.Interprete.nodes.instrucciones.While import While
 from backend.src.Interprete.nodes.instrucciones.Asignacion import Asignacion
 from backend.src.Interprete.nodes.instrucciones.Declaracion import Declaracion
@@ -34,6 +36,7 @@ from backend.src.Interprete.nodes.expresiones.Potencia import Potencia
 from backend.src.Interprete.nodes.nativos.Nativo import Nativo
 from backend.src.Interprete.simbol.ListaTipos import Tipos
 from backend.src.Interprete.nodes.instrucciones.Print import Println
+from backend.src.Interprete.simbol.ListaErrores import errores
 
 # PRESEDENCIA Y ASOCIACION DE LOS OPERADORES
 precedence = (
@@ -157,16 +160,16 @@ def p_declaracion_no_init(t):
 
 def p_declaracion_op_igual(t):
     '''declaracion_valor : tipo IDENTIFICADOR IGUAL expresion PUNTO_Y_COMA'''
-    t[0] = Declaracion(t[1], t[2], t[4])
+    t[0] = Declaracion(t[1], t[2], t[4], None, t.lineno(2), find_column(t, 2))
 
 def p_declaracion_op_pto_y_coma(t):
     '''declaracion_sin_valor : tipo IDENTIFICADOR PUNTO_Y_COMA'''
-    t[0] = Declaracion(t[1], t[2])  # Declaración sin inicialización
+    t[0] = Declaracion(t[1], t[2], None, None, t.lineno(2), find_column(t, 2))  # Declaración sin inicialización
 
 def p_expresion_suma(t):
     '''expresion : expresion MAS expresion'''
     #SE CREA UN NODO SUMA CON LOS HIJOS t[1] Y t[3]
-    t[0] = Suma(t[1], t[3], t[1].linea, t[1].columna)
+    t[0] = Suma(t[1], t[3])
 
 def p_expresion_resta(t):
     '''expresion : expresion MENOS expresion'''
@@ -279,29 +282,29 @@ def p_logica_identificador(t):
 def p_expresion_entero(t):
     '''expresion : ENTERO'''
     # SE ASIGNA EL VALOR ENTERO A t[0]
-    t[0] = Nativo(Tipos.INT, int(t[1]), t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
+    t[0] = Nativo(Tipos.INT, int(t[1]), t.lineno(1), find_column(t, 1))
 
 def p_expresion_flotante(t):
     '''expresion : FLOTANTE'''
     # SE ASIGNA EL VALOR FLOTANTE A t[0]
-    t[0] = Nativo(Tipos.FLOAT, float(t[1]), t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
+    t[0] = Nativo(Tipos.FLOAT, float(t[1]), t.lineno(1), find_column(t, 1))
 
 def p_expresion_true(t):
     '''expresion : TRUE'''
-    t[0] = Nativo(Tipos.BOOL, True, t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
+    t[0] = Nativo(Tipos.BOOL, True, t.lineno(1), find_column(t, 1))
 
 def p_expresion_false(t):
     '''expresion : FALSE'''
-    t[0] = Nativo(Tipos.BOOL, False, t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
+    t[0] = Nativo(Tipos.BOOL, False, t.lineno(1), find_column(t, 1))
 
 def p_expresion_cadena(t):
     '''expresion : CADENA'''
-    t[0] = Nativo(Tipos.STRING, str(t[1]), t.slice[1].lineno, find_column(t.lexer.lexdata, t.slice[1]))
+    t[0] = Nativo(Tipos.STRING, str(t[1]), t.lineno(1), find_column(t, 1))
 
 def p_expresion_caracter(t):
     '''expresion : CARACTER'''
     # SE ASIGNA EL VALOR CARACTER A t[0]
-    t[0] = Nativo(Tipos.CHAR, str(t[1]))
+    t[0] = Nativo(Tipos.CHAR, str(t[1]), t.lineno(1), find_column(t, 1))
 
 def p_expresion_agrupada_exp(t):
     'expresion : expresion_agrupada'
@@ -327,6 +330,33 @@ def p_sentencia_else(t):
 def p_sentencia_if_else_if(t):
     '''sentenciaIf : IF PARENTESIS_IZQ condicion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER ELSE sentenciaIf'''
     t[0] = IfElseIf(t[3], t[6], t[9])
+
+def p_sentencia_switch(t):
+    '''sentencia : SWITCH PARENTESIS_IZQ expresion PARENTESIS_DER LLAVE_IZQ cases LLAVE_DER'''
+    # SE CREA UN NODO SWITCH CON LA EXPRESION Y LAS INSTRUCCIONES
+    t[0] = Switch(t[3], t[6])  # Crea un nodo Switch con la expresión y las sentencias
+
+def p_cases(t):
+    '''cases : cases case'''
+    # SE AGREGA UN NUEVO CASE A LA LISTA DE CASES
+    t[0] = t[1]
+    t[0].append(t[2])  # Agrega el nuevo case a la lista de cases
+
+def p_cases_unico(t):
+    '''cases : case'''
+    # SE CREA UNA LISTA CON UN SOLO CASE
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con el único case
+
+def p_case(t):
+    '''case : CASE expresion DOS_PUNTOS sentencias BREAK PUNTO_Y_COMA'''
+    # SE CREA UN NODO CASE CON LA EXPRESION Y LAS INSTRUCCIONES
+    t[0] = Case(t[2], t[4])  # Crea un nodo Case con la expresión y las sentencias
+
+def p_case_default(t):
+    '''case : DEFAULT DOS_PUNTOS sentencias'''
+    # SE CREA UN NODO CASE CON LA EXPRESION DEFAULT Y LAS INSTRUCCIONES
+    t[0] = Case(Nativo(Tipos.STRING, t[1]), t[3])  # Crea un nodo Case con la expresión None (default) y las sentencias
 
 def p_condicion_logica(t):
     '''condicion : logica'''
@@ -358,26 +388,43 @@ def p_tipo_str(t):
     'tipo : TIPO_STR'
     t[0] = t[1]
 
-def find_column(input, token):
-    line_start = input.rfind('\n', 0, token.lexpos) + 1
-    return (token.lexpos - line_start) + 1
+# def find_column(input, token):
+#     line_start = input.rfind('\n', 0, token.lexpos) + 1
+#     return (token.lexpos - line_start) + 1
 
 # Computes column
 #     p is a production rule's stack
 #     i is the number of item in p
-# def find_column(p, i):
-#     last_cr = p.lexer.lexdata.rfind('\n', 0, p.lexpos(i))
-#     if last_cr < 0:
-#         last_cr = 0
-#     column = (p.lexpos(i) - last_cr) + 1
-#     return column
+def find_column(p, i):
+    last_cr = p.lexer.lexdata.rfind('\n', 0, p.lexpos(i))
+    if last_cr < 0:
+        last_cr = 0
+    column = (p.lexpos(i) - last_cr) + 1
+    return column
 
-def p_error(t):
-    if t:
-        print(f"Error de sintaxis: token inesperado '{t.value}' en línea {t.lineno}")
-    else:
-        print("Error de sintaxis: fin de entrada inesperado")
-    return
+def p_error(p):
+    print(f"Error de sintaxis: token inesperado '{p.value}' en línea {p.lineno}")
+    # errores.append("sintáctico",  f"token inesperado '{p.value}' en", p.lineno, find_column(p, 1))
+    if not p:
+        print("Fin de entrada inesperado")
+        errores.append("sintáctico", "fin de entrada inesperado", p.lineno, find_column(p, 1))
+        return
+
+    # Read ahead looking for a closing '}'
+    while True:
+        tok = parser.token()             # Get the next token
+        if not tok or tok.type == 'PUNTO_Y_COMA' or tok.type == 'LLAVE_DER':
+            break
+    parser.restart()
+
+# def p_error(t):
+#     if t:
+#         print(f"Error de sintaxis: token inesperado '{t.value}' en línea {t.lineno}")
+#         errores.append("sintáctico",  f"token inesperado '{t.value}' en", t.lineno, find_column(t, 1))
+#     else:
+#         print("Error de sintaxis: fin de entrada inesperado")
+#         errores.append("sintáctico", "fin de entrada inesperado", t.lineno, find_column(t, 1))
+    
 
 print("Construyendo el analizador sintáctico...\n")
 parser = yacc.yacc(debug=True)
