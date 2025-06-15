@@ -1,6 +1,7 @@
 import ply.lex as lex
 import os
-
+from backend.src.Interprete.simbol.ListaErrores import errores
+from backend.src.Interprete.errors.Error import Error
 # DEFINICIÓN DE TODOS LOS TOKENS DEL LENGUAJE
 tokens = (
     'IGUAL',
@@ -258,7 +259,8 @@ def t_ENTERO(t):
 
 def t_CADENA(t):
     r'"([^"\\]|\\.)*"'
-    t.value = t.value.replace('"', '')
+    t.value = t.value[1:-1]  # Quita las comillas
+    t.value = bytes(t.value, "utf-8").decode("unicode_escape")  # Interpreta secuencias de escape, incluyendo \" y \'
     return t
 
 def t_CARACTER(t):
@@ -279,13 +281,18 @@ def t_newLine(t):
     t.lexer.lineno += t.value.count("\n")
 
 def t_error(t):
-    print("Caracter no reconocido '%s'" % t.value[0])
-    print("En la línea %d, columna %d" % (t.lineno, find_column(t.lexer.lexdata, t)))
+    print("Caracter no reconocido '%s'" % t.value[0], "en la línea %d, columna %d" % (t.lineno, find_column(t.lexer.lexdata, t)))
+    nuevoError = Error('lexico', f"caracter no reconocido", t.lineno, find_column(t.lexer.lexdata, t))
+    errores.append(nuevoError)
+    t.lexer.skip(1)  # Avanza al siguiente carácter
     #raise Exception(f"Error léxico: caracter '{t.value[0]}' no reconocido en la línea {t.lineno}, columna {find_column(t.lexer.lexdata, t)}")
 
 # Construir el analizador léxico
 print("Construyendo el analizador léxico...")
-lexer = lex.lex()
+def build_lexer():
+    return lex.lex()
+
+#lexer = lex.lex()
 # print(os.getcwd())
 # with open("./backend/src/Interprete/entrada.txt", "r", encoding="utf-8") as f:
 #     data = f.read()

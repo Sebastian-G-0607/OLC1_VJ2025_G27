@@ -13,7 +13,7 @@ def validar_suma(nodo1, nodo2, t1, t2):
                 return float(t1 + t2), Tipos.FLOAT
             #ENTERO + BOOLEANO = ERROR
             case Tipos.BOOL: #bool
-                return Error('semántico', 'No se puede sumar un valor entero con un booleano'), None
+                return Error('semántico', 'No se puede sumar un valor entero con un booleano', nodo2.linea, nodo2.columna), None
             case Tipos.STRING: #string
                 return str(str(t1) + t2), Tipos.STRING
             case Tipos.CHAR: #char
@@ -22,7 +22,7 @@ def validar_suma(nodo1, nodo2, t1, t2):
             case Tipos.STRING: #string
                 return str(str(t1) + t2), Tipos.STRING
             case _: 
-                return Error('semántico', 'Error al sumar la expresión'), None
+                return Error('semántico', 'Error al sumar la expresión', nodo2.linea, nodo2.columna), None
 
     elif nodo1.tipo == Tipos.FLOAT:
         match nodo2.tipo:
@@ -34,31 +34,31 @@ def validar_suma(nodo1, nodo2, t1, t2):
                 return float(t1 + t2), Tipos.FLOAT
             #FLOAT + BOOLEANO = ERROR
             case Tipos.BOOL: #bool
-                return Error('semántico', 'No se puede sumar un valor flotante con un booleano'), None
+                return Error('semántico', 'No se puede sumar un valor flotante con un booleano', nodo2.linea, nodo2.columna), None
             case Tipos.STRING: #string
                 return str(str(t1) + t2), Tipos.STRING
             #FLOAT + CARACTER = FLOAT 
             case Tipos.CHAR: #char
                 return float(t1 + ord(t2)), Tipos.FLOAT
-            case _: 
-                return Error('semántico', 'Error al sumar la expresión'), None
+            case _:
+                return Error('semántico', 'Error al sumar la expresión', nodo2.linea, nodo2.columna), None
 
     elif nodo1.tipo == Tipos.BOOL:
         match nodo2.tipo:
             #BOOLEANO + ENTERO = ERROR
             case Tipos.INT: #entero
-                return Error('semántico', 'No se puede sumar un valor booleano con un entero'), None
+                return Error('semántico', 'No se puede sumar un valor booleano con un entero', nodo2.linea, nodo2.columna), None
             case Tipos.FLOAT: #float
-                return Error('semántico', 'No se puede sumar un valor booleano con un flotante'), None
+                return Error('semántico', 'No se puede sumar un valor booleano con un flotante', nodo2.linea, nodo2.columna), None
             case Tipos.BOOL: #bool
-                return Error('semántico', 'No se puede sumar un valor booleano con otro booleano'), None
+                return Error('semántico', 'No se puede sumar un valor booleano con otro booleano', nodo2.linea, nodo2.columna), None
             case Tipos.STRING: #string
                 return str(str(t1) + t2), Tipos.STRING
             #BOOLEANO + CARACTER = ERROR  
             case Tipos.CHAR: #char
-                return Error('semántico', 'No se puede sumar un valor booleano con un carácter'), None
-            case _: 
-                return Error('semántico', 'Error al sumar la expresión'), None
+                return Error('semántico', 'No se puede sumar un valor booleano con un carácter', nodo2.linea, nodo2.columna), None
+            case _:
+                return Error('semántico', 'Error al sumar la expresión', nodo2.linea, nodo2.columna), None
 
     elif nodo1.tipo == Tipos.CHAR:
         match nodo2.tipo:
@@ -70,14 +70,14 @@ def validar_suma(nodo1, nodo2, t1, t2):
                 return float(ord(t1) + t2), Tipos.FLOAT
             #CARACTER + BOOLEANO = ERROR
             case Tipos.BOOL: #bool
-                return Error('semántico', 'No se puede sumar un caracter con un valor booleano'), None
+                return Error('semántico', 'No se puede sumar un caracter con un valor booleano', nodo2.linea, nodo2.columna), None
             case Tipos.STRING: #string
                 return str(str(t1) + t2), Tipos.STRING
             #CARACTER + CARACTER = CADENA
             case Tipos.CHAR: #char
                 return str(t1 + t2), Tipos.STRING
             case _: 
-                return Error('semántico', 'Error al sumar la expresión'), None
+                return Error('semántico', 'Error al sumar la expresión', nodo2.linea, nodo2.columna), None
 
     elif nodo1.tipo == Tipos.STRING:
         match nodo2.tipo:
@@ -97,4 +97,4 @@ def validar_suma(nodo1, nodo2, t1, t2):
             case Tipos.CHAR: #char
                 return str(t1 + t2), Tipos.STRING
             case _: 
-                return Error('semántico', 'Error al sumar la expresión'), None
+                return Error('semántico', 'Error al sumar la expresión', nodo2.linea, nodo2.columna), None

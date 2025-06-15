@@ -48,6 +48,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_suma(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
 
@@ -61,6 +64,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_resta(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
 
@@ -74,6 +80,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_multiplicacion(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
 
@@ -87,8 +96,12 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         if valorDer == 0:
-            raise ZeroDivisionError("División por cero no permitida.")
+            errores.append(Error("semántico", "División por cero no permitida.", nodo.linea, nodo.columna))
+            return 0
         resultado, tipo = validar_division(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
     
@@ -104,6 +117,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_potencia(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
     
@@ -114,6 +130,9 @@ class Visitor_Output(Visitor):
             errores.append(valor)
             return
         resultado, tipo = validar_Umenos(nodo.expresion, valor)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
     
@@ -131,6 +150,9 @@ class Visitor_Output(Visitor):
         if valorDer == 0:
             raise ZeroDivisionError("División por cero no permitida.")
         resultado, tipo = validar_modulo(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
     
@@ -144,6 +166,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_igual(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
     
@@ -157,6 +182,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_diferenciacion(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
 
@@ -172,6 +200,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_Mayorque(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
     
@@ -187,6 +218,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_Mayorigualque(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
     
@@ -200,6 +234,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_menor(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
     
@@ -215,6 +252,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_Menorigualque(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
     
@@ -228,6 +268,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_AND(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
     
@@ -241,6 +284,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_OR(nodo.izquierda, nodo.derecha , valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
 
@@ -250,6 +296,9 @@ class Visitor_Output(Visitor):
             errores.append(valor)
             return
         resultado, tipo = validar_Not(nodo.expresion, valor)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo
         return resultado
     
@@ -265,6 +314,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         resultado, tipo = validar_Xor(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
+        if isinstance(resultado, Error):
+            errores.append(resultado)
+            return resultado
         nodo.tipo = tipo  # Actualiza el tipo del nodo
         return resultado
 
@@ -280,14 +332,23 @@ class Visitor_Output(Visitor):
             errores.append(valor)
             return valor
         #OBTENGO EL TIPO DE LA VARIABLE
-        tipoVariable = st.get_variable(nodo.id)[1]
+        try:
+            tipoVariable = st.get_variable(nodo.id)[1]
+        except KeyError:
+            error = Error("semántico", f'La variable {nodo.id} no está declarada', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
         #VERIFICO SI EL TIPO DE LA VARIABLE ES EL MISMO QUE EL DEL VALOR
         if nodo.valor.tipo == tipoVariable:
-            st.update_variable(nodo.id, valor)
-            return
+            try:
+                st.update_variable(nodo.id, valor)
+                return
+            except KeyError:
+                error = Error("semántico", f'La variable {nodo.id} no está declarada', nodo.linea, nodo.columna)
+                errores.append(error)
+                return error
         else:
-            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} a una variable de tipo {tipoVariable}',)
-            print(error)
+            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} a una variable de tipo {tipoVariable}', nodo.linea, nodo.columna)
             errores.append(error)
             return error
 
@@ -297,7 +358,7 @@ class Visitor_Output(Visitor):
             simbolo, tipo = st.get_variable(nodo.id)
             nodo.tipo = tipo # Actualizar el tipo del nodo
         except KeyError:
-            error = Error("semántico", f'La variable {nodo.id} no está declarada')
+            error = Error("semántico", f'La variable {nodo.id} no está declarada', nodo.linea, nodo.columna)
             print(error)
             errores.append(error)
             return error
@@ -307,7 +368,11 @@ class Visitor_Output(Visitor):
     def visit_Declaracion(self, nodo: Nodo):
         # VERIFICAR SI LA DECLARACIÓN CONTIENE O NO VALOR
         if nodo.valor is None:
-            valor, tipo = validarDeclaracion(nodo)
+            try:
+                valor, tipo = validarDeclaracion(nodo)
+            except ValueError as e:
+                errores.append(Error("semántico", str(e), nodo.linea, nodo.columna))
+                return e
             nodo.tipo = tipo  # Actualizar el tipo del nodo
             st.add_variable(nodo.id, tipo, valor, nodo.linea, nodo.columna)
             return
@@ -316,7 +381,11 @@ class Visitor_Output(Visitor):
         valor = nodo.valor.accept(self)
         if isinstance(valor, Error):
             return valor
-        tipoVariable = validarDeclaracion(nodo)[1]
+        try:
+            tipoVariable = validarDeclaracion(nodo)[1]
+        except ValueError as e:
+            errores.append(Error("semántico", str(e), nodo.linea, nodo.columna))
+            return e
         nodo.tipo = tipoVariable # Actualizar el tipo del nodo
 
         #VERIFICO SI ES ENTERO, SI ES ENTERO PUEDE RECIBIR ENTERO O BOOLEAN
@@ -330,31 +399,51 @@ class Visitor_Output(Visitor):
             st.add_variable(nodo.id, tipoVariable, valor, nodo.linea, nodo.columna)
             return
         else:
-            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.tipo} al una variable de tipo {tipoVariable}',)
+            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} al una variable de tipo {tipoVariable}', nodo.linea, nodo.columna)
             errores.append(error)
             return error
         
     def visit_Incremento(self, nodo: Nodo):
-        valor, tipo = st.get_variable(nodo.variable)
+        try:
+            valor, tipo = st.get_variable(nodo.variable)
+        except KeyError:
+            error = Error("semántico", f'La variable {nodo.variable} no está declarada', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
         if isinstance(valor, Error):
             return valor
         if tipo not in [Tipos.INT, Tipos.FLOAT]:
-            error = Error("semántico", f'La variable {nodo.variable} debe ser de tipo entero o flotante para poder incrementarla')
-            print(error)
+            error = Error("semántico", f'La variable {nodo.variable} debe ser de tipo entero o flotante para poder incrementarla', nodo.linea, nodo.columna)
             errores.append(error)
             return error
-        st.update_variable(nodo.variable, valor + 1)
+        try:
+            st.update_variable(nodo.variable, valor + 1)
+            return
+        except KeyError:
+            error = Error("semántico", f'La variable {nodo.variable} no está declarada', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
 
     def visit_Decremento(self, nodo: Nodo):
-        valor, tipo = st.get_variable(nodo.variable)
+        try:
+            valor, tipo = st.get_variable(nodo.variable)
+        except KeyError:
+            error = Error("semántico", f'La variable {nodo.variable} no está declarada', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
         if isinstance(valor, Error):
             return valor
         if tipo not in [Tipos.INT, Tipos.FLOAT]:
-            error = Error("semántico", f'La variable {nodo.variable} debe ser de tipo entero o flotante para poder decrementarla')
+            error = Error("semántico", f'La variable {nodo.variable} debe ser de tipo entero o flotante para poder decrementarla', nodo.linea, nodo.columna)
             errores.append(error)
-            print(error)
             return error
-        st.update_variable(nodo.variable, valor - 1)    
+        try:
+            st.update_variable(nodo.variable, valor - 1)
+            return
+        except KeyError:
+            error = Error("semántico", f'La variable {nodo.variable} no está declarada', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
 
     def visit_If(self, nodo: Nodo):
         st.new_scope(f'if_{nodo.id}')
@@ -364,7 +453,7 @@ class Visitor_Output(Visitor):
         if isinstance(condicion, Error):
             return
         if nodo.condicion.tipo != Tipos.BOOL:
-            error = Error("semántico", f'La condición de un If debe ser de tipo booleano')
+            error = Error("semántico", f'La condición de un If debe ser de tipo booleano', nodo.linea, nodo.columna)
             errores.append(error)
             print(error)
             return error
@@ -406,7 +495,7 @@ class Visitor_Output(Visitor):
             return condicion
         #SE COMPRUEBA SI EL TIPO DE LA CONDICIÓN ES BOOLEANO
         if nodo.condicion.tipo != Tipos.BOOL:
-            error = Error("semántico", f'La condición de un If debe ser de tipo booleano')
+            error = Error("semántico", f'La condición de un If debe ser de tipo booleano', nodo.linea, nodo.columna)
             print(error)
             errores.append(error)
             return error
@@ -435,7 +524,7 @@ class Visitor_Output(Visitor):
             return condicion
         #SE COMPRUEBA SI EL TIPO DE LA CONDICIÓN ES BOOLEANO
         if nodo.condicion.tipo != Tipos.BOOL:
-            error = Error("semántico", f'La condición de un If debe ser de tipo booleano')
+            error = Error("semántico", f'La condición de un If debe ser de tipo booleano', nodo.linea, nodo.columna)
             errores.append(error)
             print(error)
             return error
@@ -458,14 +547,14 @@ class Visitor_Output(Visitor):
 
     def visit_Switch(self, nodo: Nodo):
         if nodo.expresion is None:
-            error = Error("semántico", f'La expresión del Switch no puede ser nula')
+            error = Error("semántico", f'La expresión del Switch no puede ser nula', nodo.linea, nodo.columna)
             print(error)
             errores.append(error)
             return
 
         valorComparado = nodo.expresion.accept(self)
         if nodo.expresion.tipo != Tipos.INT:
-            error = Error("semántico", f'La expresión del Switch debe ser de tipo entero')
+            error = Error("semántico", f'La expresión del Switch debe ser de tipo entero', nodo.linea, nodo.columna)
             print(error)
             errores.append(error)
             return
@@ -491,8 +580,7 @@ class Visitor_Output(Visitor):
 
     def visit_Case(self, nodo: Nodo):
         if not isinstance(nodo.condicion, Nativo):
-            error = Error("semántico", f'La condición del Case debe ser un valor primitivo')
-            print(error)
+            error = Error("semántico", f'La condición del Case debe ser un valor primitivo', nodo.linea, nodo.columna)
             errores.append(error)
             return
         return nodo.condicion.accept(self)
@@ -504,8 +592,7 @@ class Visitor_Output(Visitor):
         if isinstance(condicion, Error):
             return condicion
         if nodo.condition.tipo != Tipos.BOOL:
-            error = Error("semántico", f'La condición de un While debe ser de tipo booleano')
-            print(error)
+            error = Error("semántico", f'La condición de un While debe ser de tipo booleano', nodo.linea, nodo.columna)
             errores.append(error)
             return
 
@@ -540,8 +627,7 @@ class Visitor_Output(Visitor):
             return condicion
         
         if nodo.condicion.tipo != Tipos.BOOL:
-            error = Error("semántico", f'La condición de un For debe ser de tipo booleano')
-            print(error)
+            error = Error("semántico", f'La condición de un For debe ser de tipo booleano', nodo.linea, nodo.columna)
             errores.append(error)
             return
 
@@ -594,7 +680,7 @@ class Visitor_Output(Visitor):
         if isinstance(condicion, Error):
             return condicion
         if nodo.condicion.tipo != Tipos.BOOL:
-            error = Error("semántico", f'La condición de un DoWhile debe ser de tipo booleano')
+            error = Error("semántico", f'La condición de un DoWhile debe ser de tipo booleano', nodo.linea, nodo.columna)
             errores.append(error)
             return
 
