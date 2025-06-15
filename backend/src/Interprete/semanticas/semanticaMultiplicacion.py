@@ -15,8 +15,8 @@ def validar_multiplicacion(nodo1, nodo2, t1, t2):
             case Tipos.CHAR: 
                 return int(t1 * ord(t2)), Tipos.INT
             case _: 
-                return Error('Semántico', 'Error al multiplicar la expresión'), None
-    
+                return Error('semántico', 'Error al multiplicar la expresión', nodo2.linea, nodo2.columna), None
+
     if nodo1.tipo == Tipos.FLOAT:
         match nodo2.tipo:
             # FLOAT * ENTERO = FLOAT
@@ -29,8 +29,8 @@ def validar_multiplicacion(nodo1, nodo2, t1, t2):
             case Tipos.CHAR: 
                 return float(t1 * ord(t2)), Tipos.FLOAT
             case _: 
-                return Error('Semántico', 'Error al multiplicar la expresión'), None
-    
+                return Error('semántico', 'Error al multiplicar la expresión', nodo2.linea, nodo2.columna), None
+
     if nodo1.tipo == Tipos.CHAR:
         match nodo2.tipo:
             # CARACTER * ENTERO = ENTERO
@@ -41,9 +41,9 @@ def validar_multiplicacion(nodo1, nodo2, t1, t2):
                 return float(ord(t1) * t2), Tipos.FLOAT
             # CARACTER * CARACTER = ERROR
             case Tipos.CHAR: 
-                return Error('Semántico', 'No se puede multiplicar un caracter con otro caracter'), None
+                return Error('semántico', 'No se puede multiplicar un caracter con otro caracter', nodo2.linea, nodo2.columna), None
             case _: 
-                return Error('Semántico', 'Error al multiplicar la expresión'), None
-    
+                return Error('semántico', 'Error al multiplicar la expresión', nodo2.linea, nodo2.columna), None
+
     if nodo1.tipo == Tipos.STRING or nodo1.tipo == Tipos.BOOL:
-        return Error('Semántico', 'Los tipos de datos proporcionados no son compatibles para la operación de multiplicación'), None
+        return Error('semántico', 'Los tipos de datos proporcionados no son compatibles para la operación de multiplicación', nodo2.linea, nodo2.columna), None

@@ -4,7 +4,7 @@ class Else(Nodo):
     _contador = 0
 
     def __init__(self, instrucciones, linea = None, columna = None):
-        super().__init__(linea, columna)
+        super().__init__(None, linea, columna)
         self.instrucciones = instrucciones
         Else._contador += 1
         self.id = Else._contador

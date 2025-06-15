@@ -10,18 +10,18 @@ def validar_AND(nodo1, nodo2, t1, t2):
                 return t1 and t2, Tipos.BOOL
             # BOOLEANO AND ENTERO = ERROR
             case Tipos.INT:
-                return Error('Semántico', 'No se puede realizar una operación AND entre un booleano y un entero'), None
+                return Error('semántico', 'No se puede realizar una operación AND entre un booleano y un entero', nodo2.linea, nodo2.columna), None
             # BOOLEANO AND FLOAT = ERROR
             case Tipos.FLOAT:
-                return Error('Semántico', 'No se puede realizar una operación AND entre un booleano y un flotante'), None
+                return Error('semántico', 'No se puede realizar una operación AND entre un booleano y un flotante', nodo2.linea, nodo2.columna), None
             # BOOLEANO AND CARACTER = ERROR
             case Tipos.CHAR:
-                return Error('Semántico', 'No se puede realizar una operación AND entre un booleano y un carácter'), None
+                return Error('semántico', 'No se puede realizar una operación AND entre un booleano y un carácter', nodo2.linea, nodo2.columna), None
             # BOOLEANO AND CADENA = ERROR
             case Tipos.STRING:
-                return Error('Semántico', 'No se puede realizar una operación AND entre un booleano y una cadena'), None
+                return Error('semántico', 'No se puede realizar una operación AND entre un booleano y una cadena', nodo2.linea, nodo2.columna), None
             case _:
-                return Error('Semántico', 'Error al comparar la expresión'), None
+                return Error('semántico', 'Error al comparar la expresión', nodo2.linea, nodo2.columna), None
 
     else:
-        return Error('Semántico', 'Los tipos de datos proporcionados no son compatibles para la operación AND'), None
+        return Error('semántico', 'Los tipos de datos proporcionados no son compatibles para la operación AND', nodo1.linea, nodo1.columna), None

@@ -8,5 +8,4 @@ def validar_Umenos(nodo1, t1):
     elif nodo1.tipo == Tipos.FLOAT:
         return -float(t1), Tipos.FLOAT
     else:
-        return Error('Semántico', 'No se puede aplicar el operador unario menos a este tipo'), None
-            
+        return Error('Semántico', 'No se puede aplicar el operador unario menos a este tipo', nodo1.linea, nodo1.columna), None

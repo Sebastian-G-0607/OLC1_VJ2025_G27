@@ -4,7 +4,7 @@ class If(Nodo):
     _contador = 0
 
     def __init__(self, condicion, instrucciones, linea = None, columna = None):
-        super().__init__(linea, columna)
+        super().__init__(None, linea, columna)
         self.condicion = condicion
         self.instrucciones = instrucciones
         If._contador += 1
