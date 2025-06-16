@@ -63,7 +63,12 @@ const MainPage = () => {
             }
             console.log(response);
         } catch (error) {
-            console.error('Error al interpretar:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Ocurrió un error',
+                text: `${error.message}. Por favor, revisa tu código y vuelve a intentarlo.`,
+            });
+            return;
         }
     };
 

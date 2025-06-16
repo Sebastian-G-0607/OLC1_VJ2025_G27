@@ -1,6 +1,7 @@
 from ply import yacc
 from flask import Blueprint, jsonify, request
 from backend.src.Interprete.simbol.RaizArbol import Arbol
+from backend.src.Interprete.simbol.TablaSimbolos import SymbolTable
 from backend.src.Interprete.visitor_object.visitor_output import Visitor_Output
 from backend.src.Interprete.simbol.ListaErrores import errores
 from backend.src.Interprete.simbol.InstanciaTabla import st
@@ -29,7 +30,7 @@ def prueba():
     # Accede al contenido JSON enviado por el frontend
     data = request.get_json()
     if not data or 'input' not in data:
-        return jsonify({'error': 'No input provided'}), 400
+        return jsonify({'error': 'No hay contenido para interpretar'}), 400
 
     input = data['input']
 
@@ -40,7 +41,7 @@ def prueba():
     except Exception as e:
         print(f"Error al crear el árbol")
         print(f"Error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Ocurrió un error al crear el AST'}), 500
 
     if ast is None: 
         print("Hubo un error al parsear la expresión.")
@@ -50,8 +51,15 @@ def prueba():
     visitor = Visitor_Output(ast)
 
     # SE IMPRIME EL AST
-    for nodo in ast.getInstrucciones():
-        nodo.accept(visitor)
+    if ast.getInstrucciones() is None:
+        print("El AST no contiene instrucciones.")
+        return jsonify({'error': 'El AST no contiene instrucciones.'}), 500
+    try:
+        for nodo in ast.getInstrucciones():
+                nodo.accept(visitor)
+    except Exception as e:
+        print(f"Error al visitar el AST: {str(e)}")
+        return jsonify({'error': 'Ocurrió un error al visitar el AST'}), 500
 
     # SE IMPRIME LA TABLA DE SIMBOLOS
     st.print_table()

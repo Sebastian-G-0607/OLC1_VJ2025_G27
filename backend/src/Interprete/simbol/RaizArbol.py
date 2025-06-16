@@ -1,7 +1,6 @@
-
 class Arbol:
     def __init__(self, instrucciones):
-        self.__instrucciones = instrucciones
+        self.__instrucciones = [inst for inst in instrucciones if inst is not None]
         self.__consola = ""
         self.__errores = []
 

@@ -20,6 +20,7 @@ class SymbolTable(metaclass=SingletonMeta):
         """Limpia la tabla de símbolos y reinicia los scopes."""
         self.scopes = ['global']
         self.symbols = []
+        Symbol._id_counter = 0
 
     @property
     def current_scope(self):

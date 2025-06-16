@@ -5,6 +5,7 @@ export const getParse = async (input) => {
         const response = await axios.post('/parse', { input });
         return response.data;        
     } catch (error) {
+        if (error.response.data) throw new Error(error.response.data.error)
         throw new Error(`Error al obtener el parse: ${error}`);
     }
 }

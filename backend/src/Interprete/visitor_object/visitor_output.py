@@ -321,6 +321,8 @@ class Visitor_Output(Visitor):
         return resultado
 
     def visit_Println(self, nodo: Nodo):
+        if nodo is None:
+            return
         valor = nodo.expresion.accept(self)
         if(isinstance(valor, Error)):
             return

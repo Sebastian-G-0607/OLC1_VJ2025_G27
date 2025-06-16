@@ -57,6 +57,8 @@ precedence = (
 # ANALISIS SINTÁCTICO
 def p_programa(t):
     '''programa : sentencias'''
+    if t[1] is None:
+        return
     t[0] = t[1]  # El resultado del programa es la lista de sentencias
 
 def p_lista_sentencias(t):
@@ -66,6 +68,8 @@ def p_lista_sentencias(t):
 
 def p_una_sentencia(t):
     '''sentencias : sentencia'''
+    if t[1] is None:
+        return
     t[0] = list()
     t[0].append(t[1])  # Crea una lista con la única sentencia
 
@@ -75,6 +79,8 @@ def p_sentencia_empty(t):
 
 def p_sentencia_print(t):
     '''sentencia : PRINT PARENTESIS_IZQ expresion PARENTESIS_DER PUNTO_Y_COMA'''
+    if t[3] is None:
+        return
     t[0] = Println(t[3], t.lineno(1), find_column(t, 1))  # Crea un nodo Println con la expresión a imprimir
 
 def p_sentencia_declaracion(t):
@@ -171,6 +177,8 @@ def p_declaracion_op_pto_y_coma(t):
 
 def p_expresion_suma(t):
     '''expresion : expresion MAS expresion'''
+    if t[1] is None or t[3] is None:
+        return
     #SE CREA UN NODO SUMA CON LOS HIJOS t[1] Y t[3]
     t[0] = Suma(t[1], t[3], t.lineno(2), find_column(t, 2))
 
@@ -391,13 +399,15 @@ def p_tipo_str(t):
     'tipo : TIPO_STR'
     t[0] = t[1]
 
-# def find_column(input, token):
-#     line_start = input.rfind('\n', 0, token.lexpos) + 1
-#     return (token.lexpos - line_start) + 1
+def p_sentencia_for_error(t):
+    '''sentencia : FOR PARENTESIS_IZQ error PUNTO_Y_COMA condicion PUNTO_Y_COMA actualizacion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER
+                | FOR PARENTESIS_IZQ inicio_for error PUNTO_Y_COMA actualizacion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER
+                | FOR PARENTESIS_IZQ inicio_for condicion PUNTO_Y_COMA error PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER
+                | FOR PARENTESIS_IZQ error PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER
+                | FOR error LLAVE_IZQ sentencias LLAVE_DER'''
+    print(f"Error en estructura for (línea {t.lineno(1)}), recuperándose...")
+    t[0] = None
 
-# Computes column
-#     p is a production rule's stack
-#     i is the number of item in p
 def find_column(p, i):
     last_cr = p.lexer.lexdata.rfind('\n', 0, p.lexpos(i))
     if last_cr < 0:
@@ -416,25 +426,75 @@ def find_column_error(token):
     line_start = token.lexer.lexdata.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
+# Para errores dentro del bloque de sentencias
+def p_sentencias_error(t):
+    '''sentencias : sentencias error
+                    | error'''
+    print("Error en sentencia, recuperándose...")
+    if len(t) == 3:  # sentencias error
+        t[0] = t[1] if t[1] else []  # Mantener sentencias válidas anteriores
+    else:  # error solo
+        t[0] = []
+
+def p_sentencia_error(t):
+    '''sentencia : error'''
+    print("Error en sentencia individual, saltando...")
+    t[0] = None
+
 def p_error(p):
+    global parser
+    
     if not p:
         print("Fin de entrada inesperado")
-        return
+        return None
 
-    print(f"Error de sintaxis: token inesperado '{p.value}'")
+    # Registrar el error
+    print(f"Error de sintaxis: token inesperado '{p.value}' en línea {p.lineno}")
+    
     try:
         columna = find_column_error(p)
-        nuevoError = Error('sintactico', f"token inesperado '{p.value}'", int(p.lineno), columna)
-        errores.append(nuevoError)
+        nuevo_error = Error('sintactico', f"token inesperado '{p.value}'", int(p.lineno), columna)
+        errores.append(nuevo_error)
     except Exception as e:
         print(f"Error al agregar a la lista de errores: {e}")
 
-    # Sincroniza: avanza hasta encontrar un token seguro (por ejemplo, ';' o '}')
-    while True:
+    # Solo consumir tokens hasta encontrar sincronización
+    tokens_sincronizacion = ['PUNTO_Y_COMA', 'LLAVE_DER', 'LLAVE_IZQ']
+    
+    # Consumir máximo 5 tokens para evitar bucle infinito
+    for _ in range(5):
         tok = parser.token()
-        if not tok or tok.type in ('PUNTO_Y_COMA', 'LLAVE_DER'):
+        if not tok:
             break
-    parser.restart()
+        if tok.type in tokens_sincronizacion:
+            parser.errok()
+            return tok
+    
+    # Si no encuentra sincronización, solo marca como OK y continúa
+    parser.errok()
+    return None
+
+
+# def p_error(p):
+#     if not p:
+#         print("Fin de entrada inesperado")
+#         return
+
+#     print(f"Error de sintaxis: token inesperado '{p.value}'")
+#     try:
+#         columna = find_column_error(p)
+#         nuevoError = Error('sintactico', f"token inesperado '{p.value}'", int(p.lineno), columna)
+#         errores.append(nuevoError)
+#     except Exception as e:
+#         print(f"Error al agregar a la lista de errores: {e}")
+
+#     # Sincroniza: avanza hasta encontrar un token seguro (por ejemplo, ';' o '}')
+#     # while True:
+#     #     tok = parser.token()  # Obtiene el siguiente token
+#     #     if not tok or tok.type == 'newLine' or tok.type == 'PUNTO_Y_COMA' or tok.type == 'LLAVE_DER':
+#     #         break
+#     return recuperar_error(p)
+
 
 # def p_error(t):
 #     if t:
@@ -443,7 +503,6 @@ def p_error(p):
 #     else:
 #         print("Error de sintaxis: fin de entrada inesperado")
 #         errores.append("sintáctico", "fin de entrada inesperado", t.lineno, find_column(t, 1))
-
 
 
 print("Construyendo el analizador sintáctico...\n")
