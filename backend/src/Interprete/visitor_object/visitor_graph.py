@@ -9,21 +9,28 @@ class VisitorGraph(Visitor):
 
         self.dot.append('digraph G {')
         self.dot.append('node [shape=ellipse];')
+        
+    def generar_dot(self, arbol):
+        self.dot.append("}")
+        return "\n".join(self.dot)
 
     # VISITA UN NÚMERO Y DEVUELVE SU VALOR
     def visit_Nativo(self, nodo: Nodo):
         codigo = f'node{self.counter} [label="{nodo.valor}""];'
+        self.dot.append(codigo)
+        retorno = f'node{self.counter}'
         self.counter += 1
-        return codigo
+        return retorno
 
     def visit_Suma(self, nodo: Nodo):
+        #SE DEFINE EL NODO RAIZ DE LA SUMA
+        raiz = f'node{self.counter} [label="+"];'
+        self.dot.append(raiz)
         #PRIMERO, SE GUARDA EL VALOR DE LA IZQUIERDA Y DERECHA
         valorIzq = nodo.izquierda.accept(self)
         valorDer = nodo.derecha.accept(self)
-        #SE DEFINE EL NODO RAIZ DE LA SUMA
-        raiz = f'node{self.counter} [label="+"];'
         #SE RETORNA EL CÓDIGO DE LA SUMA
-        codigo = raiz + '\n'
+        codigo = ''
         codigo += f'node{self.counter} -> {valorIzq};\n'
         codigo += f'node{self.counter} -> {valorDer};\n'
         self.counter += 1
@@ -31,7 +38,7 @@ class VisitorGraph(Visitor):
     
     def visit_Println(self, nodo: Nodo):
         #PRIMERO, SE GUARDA EL VALOR DEL NODO
-        valor = nodo.valor.accept(self)
+        valor = nodo.expresion.accept(self)
         #SE DEFINE EL NODO RAIZ DEL PRINTLN
         raiz = f'node{self.counter} [label="Println"];'
         #SE RETORNA EL CÓDIGO DEL PRINTLN

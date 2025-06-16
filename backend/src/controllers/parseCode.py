@@ -1,7 +1,10 @@
+import os
+
+from graphviz import Source
 from ply import yacc
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
+from backend.src.Interprete.visitor_object.visitor_graph import VisitorGraph
 from backend.src.Interprete.simbol.RaizArbol import Arbol
-from backend.src.Interprete.simbol.TablaSimbolos import SymbolTable
 from backend.src.Interprete.visitor_object.visitor_output import Visitor_Output
 from backend.src.Interprete.simbol.ListaErrores import errores
 from backend.src.Interprete.simbol.InstanciaTabla import st
@@ -71,3 +74,49 @@ def prueba():
             print(error)
 
     return jsonify({'consola': ast.getConsola()})
+
+@BlueprintParse.route('/api/ast', methods=['POST'])
+def reporte_ast():
+    data = request.get_json()
+    if not data or 'input' not in data:
+        return jsonify({'error': 'No input provided'}), 400
+
+    input = data['input']
+
+    try:
+        instrucciones = parse(input['code'])
+        ast = Arbol(instrucciones)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    visitor_gv = VisitorGraph(ast)
+    # SE IMPRIME EL AST
+    if ast.getInstrucciones() is None:
+        print("El AST no contiene instrucciones.")
+        return jsonify({'error': 'El AST no contiene instrucciones.'}), 500
+    try:
+        for nodo in ast.getInstrucciones():
+                codigo = nodo.accept(visitor_gv)
+                visitor_gv.dot.append(codigo)
+    except Exception as e:
+        print(f"Error al visitar el AST: {str(e)}")
+        return jsonify({'error': 'Ocurrió un error al visitar el AST'}), 500
+    dot_ast = visitor_gv.generar_dot(ast)
+
+# Ruta absoluta a la carpeta src
+    src_dir = os.path.dirname(os.path.abspath(__file__))  # controllers
+    src_dir = os.path.dirname(src_dir)  # src
+
+    dot_path = os.path.join(src_dir, "ast.dot")
+    svg_path = os.path.join(src_dir, "ast.svg")
+
+    # Guardar DOT en src
+    with open(dot_path, "w", encoding="utf-8") as f:
+        f.write(dot_ast)
+
+    # Generar SVG en src
+    src_graph = Source(dot_ast)
+    src_graph.render(filename="ast", directory=src_dir, format='svg', cleanup=True)
+
+    # Devuelve el archivo SVG
+    return send_file(svg_path, mimetype='image/svg+xml', as_attachment=True, download_name='ast.svg')

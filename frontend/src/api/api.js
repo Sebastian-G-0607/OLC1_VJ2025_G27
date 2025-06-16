@@ -9,3 +9,8 @@ export const getParse = async (input) => {
         throw new Error(`Error al obtener el parse: ${error}`);
     }
 }
+
+export const getAST = async(input) =>{
+    const response = await axios.post('/ast',{input}, { responseType: 'blob'});
+    return response.data;
+}

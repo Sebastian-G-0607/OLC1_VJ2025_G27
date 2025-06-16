@@ -1,12 +1,13 @@
 import './mainPage.css';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { getParse } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
+import { getParse, getAST } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
 
 const MainPage = () => {
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
     const resultadoRef = useRef(null); // Nuevo ref para el textarea de salida
+    const [svgUrl, setSvgUrl] = useState(null);
 
     const handleTabInTextarea = (e) => {
         if (e.key === 'Tab') {
@@ -63,14 +64,34 @@ const MainPage = () => {
             }
             console.log(response);
         } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Ocurrió un error',
-                text: `${error.message}. Por favor, revisa tu código y vuelve a intentarlo.`,
-            });
-            return;
+            console.error('Error al interpretar:', error);
         }
     };
+
+    const handleASTClick = async () => {
+        try {
+            const codigo = textareaRef.current ? textareaRef.current.value : '';
+            const data = { code: codigo };
+            const svgBlob = await getAST(data);
+
+            // Crear URL temporal para el blob
+            const url = window.URL.createObjectURL(svgBlob);
+            setSvgUrl(url);
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo generar el AST.',
+            });
+        }
+    };
+
+    // Limpieza de la URL temporal cuando cambia
+    useEffect(() => {
+        return () => {
+            if (svgUrl) window.URL.revokeObjectURL(svgUrl);
+        };
+    }, [svgUrl]);
 
     return (
         <div>
@@ -114,10 +135,17 @@ const MainPage = () => {
                     <div className="controls_output">
                         <button className='editor-buttons'>Reporte de Errores</button>
                         <button className='editor-buttons'>Tabla de Símbolos</button>
-                        <button className='editor-buttons'>AST</button>
+                        <button className='editor-buttons'  onClick={handleASTClick} >AST</button>
                     </div>
 
                     <textarea id="resultado" readOnly ref={resultadoRef} spellCheck={false}></textarea>
+                    {/* Mostrar el SVG si existe */}
+                    {svgUrl && (
+                        <div style={{ marginTop: 20 }}>
+                            <h3>Árbol de Sintaxis Abstracta (AST)</h3>
+                            <img src={svgUrl} alt="AST" style={{ width: '100%', maxHeight: 500 }} />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
