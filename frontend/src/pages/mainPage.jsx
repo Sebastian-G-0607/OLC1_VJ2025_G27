@@ -72,6 +72,14 @@ const MainPage = () => {
         }
     };
 
+    const handleGenerarReporteErrores = () => {
+        window.open('http://localhost:4000/reporte/errores', '_blank');
+    };
+
+    const handleGenerarReporteTS = () => {
+        window.open('http://localhost:4000/reporte/simbolos', '_blank');
+    };
+
     return (
         <div>
             <h1>OBJ - C</h1>
@@ -112,8 +120,8 @@ const MainPage = () => {
                 <div className="output-area">
                     <h2>Salida</h2>
                     <div className="controls_output">
-                        <button className='editor-buttons'>Reporte de Errores</button>
-                        <button className='editor-buttons'>Tabla de Símbolos</button>
+                        <button className='editor-buttons' onClick={handleGenerarReporteErrores}>Reporte de Errores</button>
+                        <button className='editor-buttons' onClick={handleGenerarReporteTS}>Tabla de Símbolos</button>
                         <button className='editor-buttons'>AST</button>
                     </div>
 
