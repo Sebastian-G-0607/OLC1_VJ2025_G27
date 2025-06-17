@@ -59,7 +59,13 @@ def prueba():
         return jsonify({'error': 'El AST no contiene instrucciones.'}), 500
     try:
         for nodo in ast.getInstrucciones():
+            try:
                 nodo.accept(visitor)
+            except TypeError as e:
+                if "NoneType" in str(e):
+                    continue  # Ignora y sigue con el siguiente nodo
+                else:
+                    raise  # Si es otro TypeError, relanza la excepción
     except Exception as e:
         print(f"Error al visitar el AST: {str(e)}")
         return jsonify({'error': 'Ocurrió un error al visitar el AST'}), 500
@@ -96,27 +102,39 @@ def reporte_ast():
         return jsonify({'error': 'El AST no contiene instrucciones.'}), 500
     try:
         for nodo in ast.getInstrucciones():
+            print(f"Visitando nodo: ")
+            print(nodo)
+            if nodo is None:
+                print("Nodo es None, se ignora.")
+                continue  # Ignora nodos None explícitamente
+            try:
                 codigo = nodo.accept(visitor_gv)
-                visitor_gv.dot.append(codigo)
+                visitor_gv.appendInstruccion(codigo)
+            except TypeError as e:
+                if "NoneType" in str(e):
+                    continue  # Ignora y sigue con el siguiente nodo
+                else:
+                    raise  # Si es otro TypeError, relanza la excepción
     except Exception as e:
-        print(f"Error al visitar el AST: {str(e)}")
+        print(f"Error al graficar el AST: {str(e)}")
         return jsonify({'error': 'Ocurrió un error al visitar el AST'}), 500
     dot_ast = visitor_gv.generar_dot(ast)
 
-# Ruta absoluta a la carpeta src
-    src_dir = os.path.dirname(os.path.abspath(__file__))  # controllers
-    src_dir = os.path.dirname(src_dir)  # src
+    # Ruta absoluta a la carpeta backend/public
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # backend
+    public_dir = os.path.join(base_dir, "public", "ast")
+    os.makedirs(public_dir, exist_ok=True)
 
-    dot_path = os.path.join(src_dir, "ast.dot")
-    svg_path = os.path.join(src_dir, "ast.svg")
+    dot_path = os.path.join(public_dir, "ast.dot")
+    svg_path = os.path.join(public_dir, "ast.svg")
 
-    # Guardar DOT en src
+    # Guardar DOT en public/ast
     with open(dot_path, "w", encoding="utf-8") as f:
         f.write(dot_ast)
 
-    # Generar SVG en src
+    # Generar SVG en public/ast
     src_graph = Source(dot_ast)
-    src_graph.render(filename="ast", directory=src_dir, format='svg', cleanup=True)
+    src_graph.render(filename="ast", directory=public_dir, format='svg', cleanup=True)
 
     # Devuelve el archivo SVG
     return send_file(svg_path, mimetype='image/svg+xml', as_attachment=True, download_name='ast.svg')

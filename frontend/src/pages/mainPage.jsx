@@ -76,7 +76,9 @@ const MainPage = () => {
 
             // Crear URL temporal para el blob
             const url = window.URL.createObjectURL(svgBlob);
-            setSvgUrl(url);
+
+            // Abrir el SVG en una nueva pestaña
+            window.open(url, '_blank', 'noopener,noreferrer');
         } catch (error) {
             Swal.fire({
                 icon: 'error',
@@ -85,13 +87,6 @@ const MainPage = () => {
             });
         }
     };
-
-    // Limpieza de la URL temporal cuando cambia
-    useEffect(() => {
-        return () => {
-            if (svgUrl) window.URL.revokeObjectURL(svgUrl);
-        };
-    }, [svgUrl]);
 
     return (
         <div>
@@ -139,13 +134,6 @@ const MainPage = () => {
                     </div>
 
                     <textarea id="resultado" readOnly ref={resultadoRef} spellCheck={false}></textarea>
-                    {/* Mostrar el SVG si existe */}
-                    {svgUrl && (
-                        <div style={{ marginTop: 20 }}>
-                            <h3>Árbol de Sintaxis Abstracta (AST)</h3>
-                            <img src={svgUrl} alt="AST" style={{ width: '100%', maxHeight: 500 }} />
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

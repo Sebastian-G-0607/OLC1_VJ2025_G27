@@ -365,7 +365,7 @@ def p_case(t):
     t[0] = Case(t[2], t[4], t.lineno(1), find_column(t, 1))  # Crea un nodo Case con la expresión y las sentencias
 
 def p_case_default(t):
-    '''case : DEFAULT DOS_PUNTOS sentencias'''
+    '''case : DEFAULT DOS_PUNTOS sentencias BREAK PUNTO_Y_COMA'''
     # SE CREA UN NODO CASE CON LA EXPRESION DEFAULT Y LAS INSTRUCCIONES
     t[0] = Case(Nativo(Tipos.STRING, t[1]), t[3], t.lineno(1), find_column(t, 1))  # Crea un nodo Case con la expresión None (default) y las sentencias
 
@@ -399,15 +399,6 @@ def p_tipo_str(t):
     'tipo : TIPO_STR'
     t[0] = t[1]
 
-def p_sentencia_for_error(t):
-    '''sentencia : FOR PARENTESIS_IZQ error PUNTO_Y_COMA condicion PUNTO_Y_COMA actualizacion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER
-                | FOR PARENTESIS_IZQ inicio_for error PUNTO_Y_COMA actualizacion PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER
-                | FOR PARENTESIS_IZQ inicio_for condicion PUNTO_Y_COMA error PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER
-                | FOR PARENTESIS_IZQ error PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER
-                | FOR error LLAVE_IZQ sentencias LLAVE_DER'''
-    print(f"Error en estructura for (línea {t.lineno(1)}), recuperándose...")
-    t[0] = None
-
 def find_column(p, i):
     last_cr = p.lexer.lexdata.rfind('\n', 0, p.lexpos(i))
     if last_cr < 0:
@@ -426,31 +417,30 @@ def find_column_error(token):
     line_start = token.lexer.lexdata.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
-# Para errores dentro del bloque de sentencias
-def p_sentencias_error(t):
-    '''sentencias : sentencias error
-                    | error'''
-    print("Error en sentencia, recuperándose...")
-    if len(t) == 3:  # sentencias error
-        t[0] = t[1] if t[1] else []  # Mantener sentencias válidas anteriores
-    else:  # error solo
-        t[0] = []
-
-def p_sentencia_error(t):
-    '''sentencia : error'''
-    print("Error en sentencia individual, saltando...")
-    t[0] = None
-
 def p_error(p):
     global parser
     
+    # Contador para evitar bucles infinitos
+    contador_error = getattr(parser, '_error_counter', 0)
+    parser._error_counter = contador_error + 1
+    
+    # Si hemos tenido demasiados errores consecutivos, descartamos el token actual y continuamos
+    if contador_error > 10:
+        parser._error_counter = 0
+        parser.errok()
+        return
+
     if not p:
         print("Fin de entrada inesperado")
         return None
 
-    # Registrar el error
+    # Si el token actual ya es un token de sincronización, solo continúa
+    if p.type in ['PUNTO_Y_COMA', 'LLAVE_DER']:
+        parser.errok()
+        parser._error_counter = 0  # Reiniciar contador
+        return
+
     print(f"Error de sintaxis: token inesperado '{p.value}' en línea {p.lineno}")
-    
     try:
         columna = find_column_error(p)
         nuevo_error = Error('sintactico', f"token inesperado '{p.value}'", int(p.lineno), columna)
@@ -458,22 +448,40 @@ def p_error(p):
     except Exception as e:
         print(f"Error al agregar a la lista de errores: {e}")
 
-    # Solo consumir tokens hasta encontrar sincronización
-    tokens_sincronizacion = ['PUNTO_Y_COMA', 'LLAVE_DER', 'LLAVE_IZQ']
+    # Ampliar tokens de sincronización para incluir palabras clave que inician sentencias
+    tokens_sincronizacion = ['PUNTO_Y_COMA', 'LLAVE_DER', 'PRINTLN', 'IF', 'WHILE', 'FOR', 'SWITCH', 'BREAK', 'CONTINUE', 'RETURN']
     
-    # Consumir máximo 5 tokens para evitar bucle infinito
-    for _ in range(5):
+    # Buscar un token de sincronización y retornarlo
+    while True:
         tok = parser.token()
         if not tok:
             break
+        
         if tok.type in tokens_sincronizacion:
             parser.errok()
+            parser._error_counter = 0  # Reiniciar contador
+            
+            # Si encontramos un token que es inicio de sentencia (no punto y coma o llave),
+            # lo devolvemos para que el parser lo procese como inicio de una nueva sentencia
+            if tok.type in ['PRINTLN', 'IF', 'WHILE', 'FOR', 'SWITCH', 'BREAK', 'CONTINUE', 'RETURN']:
+                return tok
+            
+            # Si es punto y coma o llave, lo retornamos para sincronizar
             return tok
     
-    # Si no encuentra sincronización, solo marca como OK y continúa
+    # Si no encontramos un token de sincronización
     parser.errok()
-    return None
-
+    return
+    
+    # Si llegamos aquí, encontramos un punto y coma o llave, o llegamos al final
+    parser.errok()
+    
+    # Intento agresivo de recuperación: descarta el estado de pila actual
+    # y fuerza al parser a reiniciar desde una producción de nivel superior
+    # Este es un último recurso y podría causar problemas, pero evitará bucles infinitos
+    parser.restart()  # Nota: este método es conceptual, PLY no lo tiene así
+    
+    return
 
 # def p_error(p):
 #     if not p:

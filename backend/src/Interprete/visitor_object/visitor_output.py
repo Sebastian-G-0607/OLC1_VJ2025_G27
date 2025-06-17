@@ -148,7 +148,8 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         if valorDer == 0:
-            raise ZeroDivisionError("División por cero no permitida.")
+            errores.append(Error("semántico", "División por cero no permitida.", nodo.linea, nodo.columna))
+            return
         resultado, tipo = validar_modulo(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         if isinstance(resultado, Error):
             errores.append(resultado)
