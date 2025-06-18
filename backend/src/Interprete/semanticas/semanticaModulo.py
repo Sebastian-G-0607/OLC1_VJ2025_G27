@@ -6,7 +6,7 @@ def validar_modulo(nodo1, nodo2, t1, t2):
     if nodo1.tipo == Tipos.INT:
         match nodo2.tipo:
             case Tipos.INT: #entero
-                return int(t1 % t2), Tipos.FLOAT
+                return float(t1 % t2), Tipos.FLOAT
             case Tipos.FLOAT: #float
                 return float(t1 % t2), Tipos.FLOAT
             case Tipos.BOOL: #bool
@@ -21,7 +21,7 @@ def validar_modulo(nodo1, nodo2, t1, t2):
     elif nodo1.tipo == Tipos.FLOAT:
         match nodo2.tipo:
             case Tipos.INT: #entero
-                return int(t1 % t2), Tipos.FLOAT
+                return float(t1 % t2), Tipos.FLOAT
             case Tipos.FLOAT: #float
                 return float(t1 % t2), Tipos.FLOAT
             case Tipos.BOOL: #bool

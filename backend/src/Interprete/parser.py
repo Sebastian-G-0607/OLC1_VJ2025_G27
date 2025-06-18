@@ -51,14 +51,38 @@ precedence = (
     ('left','MAYORQUE','MENORQUE'),
     ('left','MAYORIGUALQUE','MENORIGUALQUE'),
     ('right','NOT'),
-    ('left', 'XOR','AND'),
+    ('left', 'XOR'),
+    ('left', 'AND'),
 )
+
+
+def p_sentencias_bucle(t):
+    '''sentencias_bucle : sentencias_bucle sentencia_bucle'''
+    t[0] = t[1]
+    t[0].append(t[2])  # Agrega la nueva sentencia a la lista de sentencias de bucle
+
+def p_sentencias_bucle_unica(t):
+    '''sentencias_bucle : sentencia_bucle'''
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con la única sentencia de bucle
+
+def p_sentencia_bucle(t):
+    '''sentencia_bucle : sentencia'''
+    t[0] = t[1]  # La sentencia de bucle es una sentencia normal, se asigna directamente
+
+def p_sentencia_bucle_break(t):
+    '''sentencia_bucle : BREAK PUNTO_Y_COMA'''
+    # SE CREA UN NODO BREAK PARA SALIR DEL BUCLE
+    t[0] = Break(t[1], t.lineno(1), find_column(t, 1))  # Crea un nodo Break con el token y su posición
+
+def p_sentencia_bucle_continue(t):
+    '''sentencia_bucle : CONTINUE PUNTO_Y_COMA'''
+    # SE CREA UN NODO CONTINUE PARA SALTAR A LA SIGUIENTE ITERACION DEL BUCLE
+    t[0] = Continue(t[1], t.lineno(1), find_column(t, 1))  # Crea un nodo Continue con el token y su posición
 
 # ANALISIS SINTÁCTICO
 def p_programa(t):
     '''programa : sentencias'''
-    if t[1] is None:
-        return
     t[0] = t[1]  # El resultado del programa es la lista de sentencias
 
 def p_lista_sentencias(t):
@@ -68,8 +92,6 @@ def p_lista_sentencias(t):
 
 def p_una_sentencia(t):
     '''sentencias : sentencia'''
-    if t[1] is None:
-        return
     t[0] = list()
     t[0].append(t[1])  # Crea una lista con la única sentencia
 
@@ -79,8 +101,6 @@ def p_sentencia_empty(t):
 
 def p_sentencia_print(t):
     '''sentencia : PRINT PARENTESIS_IZQ expresion PARENTESIS_DER PUNTO_Y_COMA'''
-    if t[3] is None:
-        return
     t[0] = Println(t[3], t.lineno(1), find_column(t, 1))  # Crea un nodo Println con la expresión a imprimir
 
 def p_sentencia_declaracion(t):
@@ -177,8 +197,6 @@ def p_declaracion_op_pto_y_coma(t):
 
 def p_expresion_suma(t):
     '''expresion : expresion MAS expresion'''
-    if t[1] is None or t[3] is None:
-        return
     #SE CREA UN NODO SUMA CON LOS HIJOS t[1] Y t[3]
     t[0] = Suma(t[1], t[3], t.lineno(2), find_column(t, 2))
 

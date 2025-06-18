@@ -102,8 +102,6 @@ def reporte_ast():
         return jsonify({'error': 'El AST no contiene instrucciones.'}), 500
     try:
         for nodo in ast.getInstrucciones():
-            print(f"Visitando nodo: ")
-            print(nodo)
             if nodo is None:
                 print("Nodo es None, se ignora.")
                 continue  # Ignora nodos None explícitamente

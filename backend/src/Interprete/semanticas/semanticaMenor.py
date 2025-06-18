@@ -23,7 +23,7 @@ def validar_menor(nodo1, nodo2, t1, t2):
             case _:
                 return Error('semántico', 'Error al comparar la expresión', nodo2.linea, nodo2.columna), None
 
-    if nodo1.tipo == Tipos.FLOAT:
+    elif nodo1.tipo == Tipos.FLOAT:
         match nodo2.tipo:
             # FLOAT < ENTERO = BOOLEANO
             case Tipos.INT:
@@ -43,7 +43,7 @@ def validar_menor(nodo1, nodo2, t1, t2):
             case _:
                 return Error('semántico', 'Error al comparar la expresión', nodo2.linea, nodo2.columna), None
 
-    if nodo1.tipo == Tipos.BOOL:
+    elif nodo1.tipo == Tipos.BOOL:
         match nodo2.tipo:
             # BOOLEANO < ENTERO = ERROR
             case Tipos.INT:

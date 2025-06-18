@@ -96,8 +96,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         if valorDer == 0:
-            errores.append(Error("semántico", "División por cero no permitida.", nodo.linea, nodo.columna))
-            return 0
+            error = Error("semántico", "División por cero no permitida.", nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
         resultado, tipo = validar_division(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         if isinstance(resultado, Error):
             errores.append(resultado)
@@ -148,8 +149,9 @@ class Visitor_Output(Visitor):
             errores.append(valorDer)
             return
         if valorDer == 0:
-            errores.append(Error("semántico", "División por cero no permitida.", nodo.linea, nodo.columna))
-            return
+            error = Error("semántico", "División por cero no permitida.", nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
         resultado, tipo = validar_modulo(nodo.izquierda, nodo.derecha, valorIzq, valorDer)
         if isinstance(resultado, Error):
             errores.append(resultado)
