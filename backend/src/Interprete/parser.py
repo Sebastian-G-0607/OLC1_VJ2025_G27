@@ -43,18 +43,16 @@ from backend.src.Interprete.errors.Error import Error
 
 # PRESEDENCIA Y ASOCIACION DE LOS OPERADORES
 precedence = (
-    ('right','UMENOS'),
-    ('nonassoc', 'POTENCIA'),
-    ('left','MULTIPLICACION','DIVISION'),
-    ('left','MAS','MENOS'),
-    ('left','IGUALQUE','DIFERENTEQUE'),
-    ('left','MAYORQUE','MENORQUE'),
-    ('left','MAYORIGUALQUE','MENORIGUALQUE'),
+    ('left','OR'),
+    ('left','AND'),
+    ('left','XOR'),
     ('right','NOT'),
-    ('left', 'XOR'),
-    ('left', 'AND'),
+    ('left','IGUALQUE','DIFERENTEQUE','MAYORQUE','MENORQUE','MAYORIGUALQUE','MENORIGUALQUE'),
+    ('left','MAS','MENOS'),
+    ('left','MULTIPLICACION','DIVISION'),
+    ('nonassoc','POTENCIA'),
+    ('right','UMENOS'),
 )
-
 
 def p_sentencias_bucle(t):
     '''sentencias_bucle : sentencias_bucle sentencia_bucle'''
@@ -195,15 +193,15 @@ def p_declaracion_op_pto_y_coma(t):
     '''declaracion_sin_valor : tipo IDENTIFICADOR PUNTO_Y_COMA'''
     t[0] = Declaracion(t[1], t[2], None, None, t.lineno(2), find_column(t, 2))  # Declaración sin inicialización
 
-def p_expresion_suma(t):
-    '''expresion : expresion MAS expresion'''
-    #SE CREA UN NODO SUMA CON LOS HIJOS t[1] Y t[3]
-    t[0] = Suma(t[1], t[3], t.lineno(2), find_column(t, 2))
+def p_expresion_menos_int(t):
+    'expresion : MENOS expresion %prec UMENOS'
+    # SE CREA UN NODO RESTA CON EL VALOR 0 Y EL HIJO t[2]
+    t[0] = Umenos(t[2], t.lineno(1), find_column(t, 1))  # Aplicar el signo negativo
 
-def p_expresion_resta(t):
-    '''expresion : expresion MENOS expresion'''
-    #SE CREA UN NODO RESTA CON LOS HIJOS t[1] Y t[3]
-    t[0] = Resta(t[1], t[3], t.lineno(2), find_column(t, 2))
+def p_expresion_potencia(t):
+    '''expresion : expresion POTENCIA expresion'''
+    # SE CREA UN NODO POTENCIA CON LOS HIJOS t[1] Y t[3]
+    t[0] = Potencia(t[1], t[3], t.lineno(2), find_column(t, 2))
 
 def p_expresion_multiplicacion(t):
     '''expresion : expresion MULTIPLICACION expresion'''
@@ -215,33 +213,15 @@ def p_expresion_division(t):
     # SE CREA UN NODO DIVISION CON LOS HIJOS t[1] Y t[3]
     t[0] = Division(t[1], t[3], t.lineno(2), find_column(t, 2))
 
-def p_expresion_potencia(t):
-    '''expresion : expresion POTENCIA expresion'''
-    # SE CREA UN NODO POTENCIA CON LOS HIJOS t[1] Y t[3]
-    t[0] = Potencia(t[1], t[3], t.lineno(2), find_column(t, 2))
+def p_expresion_suma(t):
+    '''expresion : expresion MAS expresion'''
+    #SE CREA UN NODO SUMA CON LOS HIJOS t[1] Y t[3]
+    t[0] = Suma(t[1], t[3], t.lineno(2), find_column(t, 2))
 
-def p_expresion_menos_int(t):
-    'expresion : MENOS expresion %prec UMENOS'
-    # SE CREA UN NODO RESTA CON EL VALOR 0 Y EL HIJO t[2]
-    t[0] = Umenos(t[2], t.lineno(1), find_column(t, 1))  # Aplicar el signo negativo
-
-def p_expresion_modulo(t):
-    '''expresion : expresion MODULO expresion'''
-    # SE CREA UN NODO MODULO CON LOS HIJOS t[1] Y t[3]
-    t[0] = Modulo(t[1], t[3], t.lineno(2), find_column(t, 2))
-
-def p_expresion_relacionales(t):
-    '''expresion : relacional'''
-    t[0] = t[1] # SE ASIGNA LA COMPARACION RELACIONAL A t[0]
-
-def p_expresion_logica(t):
-    '''expresion : logica'''
-    t[0] = t[1]  # SE ASIGNA LA EXPRESION LOGICA A t[0]
-
-def p_expresion_identificador(t):
-    '''expresion : IDENTIFICADOR'''
-    # SE CREA UN NODO ACCESO VARIABLE CON EL IDENTIFICADOR
-    t[0] = AccesoVariable(t[1], t.lineno(1), find_column(t, 1))
+def p_expresion_resta(t):
+    '''expresion : expresion MENOS expresion'''
+    #SE CREA UN NODO RESTA CON LOS HIJOS t[1] Y t[3]
+    t[0] = Resta(t[1], t[3], t.lineno(2), find_column(t, 2))
 
 def p_relacional_igualque(t):
     '''relacional : expresion IGUALQUE expresion'''
@@ -273,6 +253,16 @@ def p_relacional_menorigualque(t):
     # SE CREA UN NODO MENORIGUALQUE CON LOS HIJOS t[1] Y t[3]
     t[0] = MenorIgualQue(t[1], t[3], t.lineno(2), find_column(t, 2))
 
+def p_logica_not(t):
+    '''logica : NOT expresion'''
+    # SE CREA UN NODO NOT CON EL HIJO t[2]
+    t[0] = Not(t[2], t.lineno(1), find_column(t, 1))
+
+def p_logica_xor(t):
+    '''logica : expresion XOR expresion'''
+    # SE CREA UN NODO XOR CON LOS HIJOS t[1] Y t[3]
+    t[0] = Xor(t[1], t[3], t.lineno(2), find_column(t, 2))
+
 def p_logica_and(t):
     '''logica : expresion AND expresion'''
     # SE CREA UN NODO AND CON LOS HIJOS t[1] Y t[3]
@@ -283,15 +273,23 @@ def p_logica_or(t):
     # SE CREA UN NODO OR CON LOS HIJOS t[1] Y t[3]
     t[0] = Or(t[1], t[3], t.lineno(2), find_column(t, 2))
 
-def p_logica_not(t):
-    '''logica : NOT expresion'''
-    # SE CREA UN NODO NOT CON EL HIJO t[2]
-    t[0] = Not(t[2], t.lineno(1), find_column(t, 1))
+def p_expresion_modulo(t):
+    '''expresion : expresion MODULO expresion'''
+    # SE CREA UN NODO MODULO CON LOS HIJOS t[1] Y t[3]
+    t[0] = Modulo(t[1], t[3], t.lineno(2), find_column(t, 2))
 
-def p_logica_xor(t):
-    '''logica : expresion XOR expresion'''
-    # SE CREA UN NODO XOR CON LOS HIJOS t[1] Y t[3]
-    t[0] = Xor(t[1], t[3], t.lineno(2), find_column(t, 2))
+def p_expresion_relacionales(t):
+    '''expresion : relacional'''
+    t[0] = t[1] # SE ASIGNA LA COMPARACION RELACIONAL A t[0]
+
+def p_expresion_logica(t):
+    '''expresion : logica'''
+    t[0] = t[1]  # SE ASIGNA LA EXPRESION LOGICA A t[0]
+
+def p_expresion_identificador(t):
+    '''expresion : IDENTIFICADOR'''
+    # SE CREA UN NODO ACCESO VARIABLE CON EL IDENTIFICADOR
+    t[0] = AccesoVariable(t[1], t.lineno(1), find_column(t, 1))
 
 def p_logica_true(t):
     '''logica : TRUE'''
