@@ -35,7 +35,7 @@ const MainPage = () => {
             Swal.fire({
                 icon: 'error',
                 title: 'Archivo incorrecto',
-                text: 'SeleccioneP un archivo con extensión .objc',
+                text: 'Seleccione un archivo con extensión .objc',
             });
             return;
         }
@@ -64,7 +64,13 @@ const MainPage = () => {
             }
             console.log(response);
         } catch (error) {
-            console.error('Error al interpretar:', error);
+            console.error('Error al interpretar el código:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al interpretar el código. Por favor, revisa tu código y vuelve a intentarlo.',
+                footer: 'Consulta el reporte de errores para más detalles',
+            });
         }
     };
 
@@ -80,10 +86,12 @@ const MainPage = () => {
             // Abrir el SVG en una nueva pestaña
             window.open(url, '_blank', 'noopener,noreferrer');
         } catch (error) {
+            console.error('Error al generar el AST:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: 'No se pudo generar el AST.',
+                text: 'Ocurrió un error al crear el AST. Por favor, revisa tu código y vuelve a intentarlo.',
+                footer: 'Consulta el reporte de errores para más detalles',
             });
         }
     };

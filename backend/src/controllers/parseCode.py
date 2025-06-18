@@ -72,6 +72,14 @@ def prueba():
 
     # SE IMPRIME LA TABLA DE SIMBOLOS
     st.print_table()
+    erroresExistentes = len(errores)
+    salida = ast.getConsola() 
+    if erroresExistentes > 0:
+        salida = f"Se encontraron {erroresExistentes} errores en el código.\n\n{ast.getConsola()}"
+    else:
+        print("No se encontraron errores.")
+    
+    
 
     # SE IMPRIMEN LOS ERRORES SI HAY
     if errores:
@@ -79,7 +87,7 @@ def prueba():
         for error in errores:
             print(error)
 
-    return jsonify({'consola': ast.getConsola()})
+    return jsonify({'consola': salida})
 
 @BlueprintParse.route('/api/ast', methods=['POST'])
 def reporte_ast():
