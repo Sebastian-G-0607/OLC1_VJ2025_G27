@@ -38,7 +38,6 @@ tokens = (
     'MENORQUE',
     'MAYORIGUALQUE',
     'MENORIGUALQUE',
-    'NEGACION',
     'MODULO',
     'AND',
     'OR',
@@ -260,12 +259,14 @@ def t_ENTERO(t):
 def t_CADENA(t):
     r'"([^"\\]|\\.)*"'
     t.value = t.value[1:-1]  # Quita las comillas
-    t.value = bytes(t.value, "utf-8").decode("unicode_escape")  # Interpreta secuencias de escape, incluyendo \" y \'
+    # Solo reemplaza los escapes más comunes
+    t.value = t.value.replace(r'\"', '"').replace(r'\\', '\\').replace(r'\n', '\n').replace(r'\t', '\t').replace(r'\'', '\'')
     return t
 
 def t_CARACTER(t):
-    r"'[^']*'"
-    t.value = t.value.replace("'", "")
+    r"'(\\.|[^'])'"
+    t.value = t.value[1:-1]  # Quita las comillas
+    t.value = t.value.replace(r'\"', '"').replace(r'\\', '\\').replace(r'\n', '\n').replace(r'\t', '\t').replace(r'\'', '\'')
     return t
 
 def t_whitespace(t):

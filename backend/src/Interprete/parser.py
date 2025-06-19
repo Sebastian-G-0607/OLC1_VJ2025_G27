@@ -43,16 +43,40 @@ from backend.src.Interprete.errors.Error import Error
 
 # PRESEDENCIA Y ASOCIACION DE LOS OPERADORES
 precedence = (
-    ('right','UMENOS'),
-    ('nonassoc', 'POTENCIA'),
-    ('left','MULTIPLICACION','DIVISION'),
-    ('left','MAS','MENOS'),
-    ('left','IGUALQUE','DIFERENTEQUE'),
-    ('left','MAYORQUE','MENORQUE'),
-    ('left','MAYORIGUALQUE','MENORIGUALQUE'),
+    ('left','OR'),
+    ('left','AND'),
+    ('left','XOR'),
     ('right','NOT'),
-    ('left', 'XOR','AND'),
+    ('left','IGUALQUE','DIFERENTEQUE','MAYORQUE','MENORQUE','MAYORIGUALQUE','MENORIGUALQUE'),
+    ('left','MAS','MENOS'),
+    ('left','MULTIPLICACION','DIVISION'),
+    ('nonassoc','POTENCIA'),
+    ('right','UMENOS'),
 )
+
+def p_sentencias_bucle(t):
+    '''sentencias_bucle : sentencias_bucle sentencia_bucle'''
+    t[0] = t[1]
+    t[0].append(t[2])  # Agrega la nueva sentencia a la lista de sentencias de bucle
+
+def p_sentencias_bucle_unica(t):
+    '''sentencias_bucle : sentencia_bucle'''
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con la única sentencia de bucle
+
+def p_sentencia_bucle(t):
+    '''sentencia_bucle : sentencia'''
+    t[0] = t[1]  # La sentencia de bucle es una sentencia normal, se asigna directamente
+
+def p_sentencia_bucle_break(t):
+    '''sentencia_bucle : BREAK PUNTO_Y_COMA'''
+    # SE CREA UN NODO BREAK PARA SALIR DEL BUCLE
+    t[0] = Break(t[1], t.lineno(1), find_column(t, 1))  # Crea un nodo Break con el token y su posición
+
+def p_sentencia_bucle_continue(t):
+    '''sentencia_bucle : CONTINUE PUNTO_Y_COMA'''
+    # SE CREA UN NODO CONTINUE PARA SALTAR A LA SIGUIENTE ITERACION DEL BUCLE
+    t[0] = Continue(t[1], t.lineno(1), find_column(t, 1))  # Crea un nodo Continue con el token y su posición
 
 # ANALISIS SINTÁCTICO
 def p_programa(t):
@@ -169,15 +193,15 @@ def p_declaracion_op_pto_y_coma(t):
     '''declaracion_sin_valor : tipo IDENTIFICADOR PUNTO_Y_COMA'''
     t[0] = Declaracion(t[1], t[2], None, None, t.lineno(2), find_column(t, 2))  # Declaración sin inicialización
 
-def p_expresion_suma(t):
-    '''expresion : expresion MAS expresion'''
-    #SE CREA UN NODO SUMA CON LOS HIJOS t[1] Y t[3]
-    t[0] = Suma(t[1], t[3], t.lineno(2), find_column(t, 2))
+def p_expresion_menos_int(t):
+    'expresion : MENOS expresion %prec UMENOS'
+    # SE CREA UN NODO RESTA CON EL VALOR 0 Y EL HIJO t[2]
+    t[0] = Umenos(t[2], t.lineno(1), find_column(t, 1))  # Aplicar el signo negativo
 
-def p_expresion_resta(t):
-    '''expresion : expresion MENOS expresion'''
-    #SE CREA UN NODO RESTA CON LOS HIJOS t[1] Y t[3]
-    t[0] = Resta(t[1], t[3], t.lineno(2), find_column(t, 2))
+def p_expresion_potencia(t):
+    '''expresion : expresion POTENCIA expresion'''
+    # SE CREA UN NODO POTENCIA CON LOS HIJOS t[1] Y t[3]
+    t[0] = Potencia(t[1], t[3], t.lineno(2), find_column(t, 2))
 
 def p_expresion_multiplicacion(t):
     '''expresion : expresion MULTIPLICACION expresion'''
@@ -189,33 +213,15 @@ def p_expresion_division(t):
     # SE CREA UN NODO DIVISION CON LOS HIJOS t[1] Y t[3]
     t[0] = Division(t[1], t[3], t.lineno(2), find_column(t, 2))
 
-def p_expresion_potencia(t):
-    '''expresion : expresion POTENCIA expresion'''
-    # SE CREA UN NODO POTENCIA CON LOS HIJOS t[1] Y t[3]
-    t[0] = Potencia(t[1], t[3], t.lineno(2), find_column(t, 2))
+def p_expresion_suma(t):
+    '''expresion : expresion MAS expresion'''
+    #SE CREA UN NODO SUMA CON LOS HIJOS t[1] Y t[3]
+    t[0] = Suma(t[1], t[3], t.lineno(2), find_column(t, 2))
 
-def p_expresion_menos_int(t):
-    'expresion : MENOS expresion %prec UMENOS'
-    # SE CREA UN NODO RESTA CON EL VALOR 0 Y EL HIJO t[2]
-    t[0] = Umenos(t[2], t.lineno(1), find_column(t, 1))  # Aplicar el signo negativo
-
-def p_expresion_modulo(t):
-    '''expresion : expresion MODULO expresion'''
-    # SE CREA UN NODO MODULO CON LOS HIJOS t[1] Y t[3]
-    t[0] = Modulo(t[1], t[3], t.lineno(2), find_column(t, 2))
-
-def p_expresion_relacionales(t):
-    '''expresion : relacional'''
-    t[0] = t[1] # SE ASIGNA LA COMPARACION RELACIONAL A t[0]
-
-def p_expresion_logica(t):
-    '''expresion : logica'''
-    t[0] = t[1]  # SE ASIGNA LA EXPRESION LOGICA A t[0]
-
-def p_expresion_identificador(t):
-    '''expresion : IDENTIFICADOR'''
-    # SE CREA UN NODO ACCESO VARIABLE CON EL IDENTIFICADOR
-    t[0] = AccesoVariable(t[1], t.lineno(1), find_column(t, 1))
+def p_expresion_resta(t):
+    '''expresion : expresion MENOS expresion'''
+    #SE CREA UN NODO RESTA CON LOS HIJOS t[1] Y t[3]
+    t[0] = Resta(t[1], t[3], t.lineno(2), find_column(t, 2))
 
 def p_relacional_igualque(t):
     '''relacional : expresion IGUALQUE expresion'''
@@ -247,6 +253,16 @@ def p_relacional_menorigualque(t):
     # SE CREA UN NODO MENORIGUALQUE CON LOS HIJOS t[1] Y t[3]
     t[0] = MenorIgualQue(t[1], t[3], t.lineno(2), find_column(t, 2))
 
+def p_logica_not(t):
+    '''logica : NOT expresion'''
+    # SE CREA UN NODO NOT CON EL HIJO t[2]
+    t[0] = Not(t[2], t.lineno(1), find_column(t, 1))
+
+def p_logica_xor(t):
+    '''logica : expresion XOR expresion'''
+    # SE CREA UN NODO XOR CON LOS HIJOS t[1] Y t[3]
+    t[0] = Xor(t[1], t[3], t.lineno(2), find_column(t, 2))
+
 def p_logica_and(t):
     '''logica : expresion AND expresion'''
     # SE CREA UN NODO AND CON LOS HIJOS t[1] Y t[3]
@@ -257,15 +273,23 @@ def p_logica_or(t):
     # SE CREA UN NODO OR CON LOS HIJOS t[1] Y t[3]
     t[0] = Or(t[1], t[3], t.lineno(2), find_column(t, 2))
 
-def p_logica_not(t):
-    '''logica : NOT expresion'''
-    # SE CREA UN NODO NOT CON EL HIJO t[2]
-    t[0] = Not(t[2], t.lineno(1), find_column(t, 1))
+def p_expresion_modulo(t):
+    '''expresion : expresion MODULO expresion'''
+    # SE CREA UN NODO MODULO CON LOS HIJOS t[1] Y t[3]
+    t[0] = Modulo(t[1], t[3], t.lineno(2), find_column(t, 2))
 
-def p_logica_xor(t):
-    '''logica : expresion XOR expresion'''
-    # SE CREA UN NODO XOR CON LOS HIJOS t[1] Y t[3]
-    t[0] = Xor(t[1], t[3], t.lineno(2), find_column(t, 2))
+def p_expresion_relacionales(t):
+    '''expresion : relacional'''
+    t[0] = t[1] # SE ASIGNA LA COMPARACION RELACIONAL A t[0]
+
+def p_expresion_logica(t):
+    '''expresion : logica'''
+    t[0] = t[1]  # SE ASIGNA LA EXPRESION LOGICA A t[0]
+
+def p_expresion_identificador(t):
+    '''expresion : IDENTIFICADOR'''
+    # SE CREA UN NODO ACCESO VARIABLE CON EL IDENTIFICADOR
+    t[0] = AccesoVariable(t[1], t.lineno(1), find_column(t, 1))
 
 def p_logica_true(t):
     '''logica : TRUE'''
@@ -357,7 +381,7 @@ def p_case(t):
     t[0] = Case(t[2], t[4], t.lineno(1), find_column(t, 1))  # Crea un nodo Case con la expresión y las sentencias
 
 def p_case_default(t):
-    '''case : DEFAULT DOS_PUNTOS sentencias'''
+    '''case : DEFAULT DOS_PUNTOS sentencias BREAK PUNTO_Y_COMA'''
     # SE CREA UN NODO CASE CON LA EXPRESION DEFAULT Y LAS INSTRUCCIONES
     t[0] = Case(Nativo(Tipos.STRING, t[1]), t[3], t.lineno(1), find_column(t, 1))  # Crea un nodo Case con la expresión None (default) y las sentencias
 
@@ -391,13 +415,6 @@ def p_tipo_str(t):
     'tipo : TIPO_STR'
     t[0] = t[1]
 
-# def find_column(input, token):
-#     line_start = input.rfind('\n', 0, token.lexpos) + 1
-#     return (token.lexpos - line_start) + 1
-
-# Computes column
-#     p is a production rule's stack
-#     i is the number of item in p
 def find_column(p, i):
     last_cr = p.lexer.lexdata.rfind('\n', 0, p.lexpos(i))
     if last_cr < 0:
@@ -417,24 +434,91 @@ def find_column_error(token):
     return (token.lexpos - line_start) + 1
 
 def p_error(p):
-    if not p:
-        print("Fin de entrada inesperado")
+    global parser
+    
+    # Contador para evitar bucles infinitos
+    contador_error = getattr(parser, '_error_counter', 0)
+    parser._error_counter = contador_error + 1
+    
+    # Si hemos tenido demasiados errores consecutivos, descartamos el token actual y continuamos
+    if contador_error > 10:
+        parser._error_counter = 0
+        parser.errok()
         return
 
-    print(f"Error de sintaxis: token inesperado '{p.value}'")
+    if not p:
+        print("Fin de entrada inesperado")
+        return None
+
+    # Si el token actual ya es un token de sincronización, solo continúa
+    if p.type in ['PUNTO_Y_COMA', 'LLAVE_DER']:
+        parser.errok()
+        parser._error_counter = 0  # Reiniciar contador
+        return
+
+    print(f"Error de sintaxis: token inesperado '{p.value}' en línea {p.lineno}")
     try:
         columna = find_column_error(p)
-        nuevoError = Error('sintactico', f"token inesperado '{p.value}'", int(p.lineno), columna)
-        errores.append(nuevoError)
+        nuevo_error = Error('sintactico', f"token inesperado '{p.value}'", int(p.lineno), columna)
+        errores.append(nuevo_error)
     except Exception as e:
         print(f"Error al agregar a la lista de errores: {e}")
 
-    # Sincroniza: avanza hasta encontrar un token seguro (por ejemplo, ';' o '}')
+    # Ampliar tokens de sincronización para incluir palabras clave que inician sentencias
+    tokens_sincronizacion = ['PUNTO_Y_COMA', 'LLAVE_DER', 'PRINTLN', 'IF', 'WHILE', 'FOR', 'SWITCH', 'BREAK', 'CONTINUE', 'RETURN']
+    
+    # Buscar un token de sincronización y retornarlo
     while True:
         tok = parser.token()
-        if not tok or tok.type in ('PUNTO_Y_COMA', 'LLAVE_DER'):
+        if not tok:
             break
-    parser.restart()
+        
+        if tok.type in tokens_sincronizacion:
+            parser.errok()
+            parser._error_counter = 0  # Reiniciar contador
+            
+            # Si encontramos un token que es inicio de sentencia (no punto y coma o llave),
+            # lo devolvemos para que el parser lo procese como inicio de una nueva sentencia
+            if tok.type in ['PRINTLN', 'IF', 'WHILE', 'FOR', 'SWITCH', 'BREAK', 'CONTINUE', 'RETURN']:
+                return tok
+            
+            # Si es punto y coma o llave, lo retornamos para sincronizar
+            return tok
+    
+    # Si no encontramos un token de sincronización
+    parser.errok()
+    return
+    
+    # Si llegamos aquí, encontramos un punto y coma o llave, o llegamos al final
+    parser.errok()
+    
+    # Intento agresivo de recuperación: descarta el estado de pila actual
+    # y fuerza al parser a reiniciar desde una producción de nivel superior
+    # Este es un último recurso y podría causar problemas, pero evitará bucles infinitos
+    parser.restart()  # Nota: este método es conceptual, PLY no lo tiene así
+    
+    return
+
+# def p_error(p):
+#     if not p:
+#         print("Fin de entrada inesperado")
+#         return
+
+#     print(f"Error de sintaxis: token inesperado '{p.value}'")
+#     try:
+#         columna = find_column_error(p)
+#         nuevoError = Error('sintactico', f"token inesperado '{p.value}'", int(p.lineno), columna)
+#         errores.append(nuevoError)
+#     except Exception as e:
+#         print(f"Error al agregar a la lista de errores: {e}")
+
+#     # Sincroniza: avanza hasta encontrar un token seguro (por ejemplo, ';' o '}')
+#     # while True:
+#     #     tok = parser.token()  # Obtiene el siguiente token
+#     #     if not tok or tok.type == 'newLine' or tok.type == 'PUNTO_Y_COMA' or tok.type == 'LLAVE_DER':
+#     #         break
+#     return recuperar_error(p)
+
 
 # def p_error(t):
 #     if t:
@@ -443,7 +527,6 @@ def p_error(p):
 #     else:
 #         print("Error de sintaxis: fin de entrada inesperado")
 #         errores.append("sintáctico", "fin de entrada inesperado", t.lineno, find_column(t, 1))
-
 
 
 print("Construyendo el analizador sintáctico...\n")

@@ -1,12 +1,13 @@
 import './mainPage.css';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { getParse } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
+import { getParse, getAST } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
 
 const MainPage = () => {
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
     const resultadoRef = useRef(null); // Nuevo ref para el textarea de salida
+    const [svgUrl, setSvgUrl] = useState(null);
 
     const handleTabInTextarea = (e) => {
         if (e.key === 'Tab') {
@@ -34,7 +35,7 @@ const MainPage = () => {
             Swal.fire({
                 icon: 'error',
                 title: 'Archivo incorrecto',
-                text: 'SeleccioneP un archivo con extensión .objc',
+                text: 'Seleccione un archivo con extensión .objc',
             });
             return;
         }
@@ -63,8 +64,44 @@ const MainPage = () => {
             }
             console.log(response);
         } catch (error) {
-            console.error('Error al interpretar:', error);
+            console.error('Error al interpretar el código:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al interpretar el código. Por favor, revisa tu código y vuelve a intentarlo.',
+                footer: 'Consulta el reporte de errores para más detalles',
+            });
         }
+    };
+
+    const handleASTClick = async () => {
+        try {
+            const codigo = textareaRef.current ? textareaRef.current.value : '';
+            const data = { code: codigo };
+            const svgBlob = await getAST(data);
+
+            // Crear URL temporal para el blob
+            const url = window.URL.createObjectURL(svgBlob);
+
+            // Abrir el SVG en una nueva pestaña
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } catch (error) {
+            console.error('Error al generar el AST:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al crear el AST. Por favor, revisa tu código y vuelve a intentarlo.',
+                footer: 'Consulta el reporte de errores para más detalles',
+            });
+        }
+    };
+
+    const handleGenerarReporteErrores = () => {
+        window.open('http://localhost:4000/reporte/errores', '_blank');
+    };
+
+    const handleGenerarReporteTS = () => {
+        window.open('http://localhost:4000/reporte/simbolos', '_blank');
     };
 
     return (
@@ -107,9 +144,9 @@ const MainPage = () => {
                 <div className="output-area">
                     <h2>Salida</h2>
                     <div className="controls_output">
-                        <button className='editor-buttons'>Reporte de Errores</button>
-                        <button className='editor-buttons'>Tabla de Símbolos</button>
-                        <button className='editor-buttons'>AST</button>
+                        <button className='editor-buttons' onClick={handleGenerarReporteErrores}>Reporte de Errores</button>
+                        <button className='editor-buttons' onClick={handleGenerarReporteTS}>Tabla de Símbolos</button>
+                        <button className='editor-buttons'  onClick={handleASTClick} >AST</button>
                     </div>
 
                     <textarea id="resultado" readOnly ref={resultadoRef} spellCheck={false}></textarea>

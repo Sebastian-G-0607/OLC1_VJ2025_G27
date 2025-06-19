@@ -12,4 +12,4 @@ class IfElseIf(Nodo):
         self.id = IfElseIf._contador
 
     def __str__(self):
-        return f"IfElseIf(condicion={self.condicion}, instrucciones_if={self.instrucciones_if}, instrucciones_elseif={self.instrucciones_elseif}, instrucciones_else={self.instrucciones_else})"
+        return f"IfElseIf(condicion={self.condicion}, instrucciones_if={self.instrucciones_if}, instrucciones_elseif={self.elseif})"

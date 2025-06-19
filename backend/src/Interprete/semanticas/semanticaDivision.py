@@ -17,7 +17,7 @@ def validar_division(nodo1, nodo2, t1, t2):
             case _:
                 return Error('semántico','Error al dividir la expresión', nodo2.linea, nodo2.columna), None
 
-    if nodo1.tipo == Tipos.FLOAT: 
+    elif nodo1.tipo == Tipos.FLOAT: 
         match nodo2.tipo: 
             #Float / Entero = Float
             case Tipos.INT: 
@@ -31,7 +31,7 @@ def validar_division(nodo1, nodo2, t1, t2):
             case _:
                 return Error('semántico', 'Error al dividir la expresión', nodo2.linea, nodo2.columna), None
 
-    if nodo1.tipo == Tipos.CHAR: 
+    elif nodo1.tipo == Tipos.CHAR: 
         match nodo2.tipo:
             #Caracter / Entero = Float
             case Tipos.INT: 
@@ -45,5 +45,5 @@ def validar_division(nodo1, nodo2, t1, t2):
             case _: 
                 return Error('semántico', 'Error al dividir la expresión', nodo2.linea, nodo2.columna), None
 
-    if nodo1.tipo == Tipos.STRING or nodo2.tipo == Tipos.STRING:
+    else:
         return Error('semántico', 'Los tipos de datos proporcionados no son compatibles para la operación de división', nodo1.linea, nodo1.columna), None
