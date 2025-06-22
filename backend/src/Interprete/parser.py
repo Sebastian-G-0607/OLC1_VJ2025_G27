@@ -1,8 +1,11 @@
 import ply.yacc as yacc
 from backend.src.Interprete.nodes.expresiones.AccesoVariable import AccesoVariable
+from backend.src.Interprete.nodes.expresiones.AccesoVector import AccesoVector
 from backend.src.Interprete.nodes.expresiones.And import And
+from backend.src.Interprete.nodes.expresiones.Coseno import Coseno
 from backend.src.Interprete.nodes.expresiones.DiferenteQue import DiferenteQue
 from backend.src.Interprete.nodes.expresiones.IgualQue import IgualQue
+from backend.src.Interprete.nodes.expresiones.Inversion import Inversion
 from backend.src.Interprete.nodes.expresiones.MayorIgualQue import MayorIgualQue
 from backend.src.Interprete.nodes.expresiones.MayorQue import MayorQue
 from backend.src.Interprete.nodes.expresiones.MenorIgualQue import MenorIgualQue
@@ -10,15 +13,27 @@ from backend.src.Interprete.nodes.expresiones.MenorQue import MenorQue
 from backend.src.Interprete.nodes.expresiones.Modulo import Modulo
 from backend.src.Interprete.nodes.expresiones.Not import Not
 from backend.src.Interprete.nodes.expresiones.Or import Or
+from backend.src.Interprete.nodes.expresiones.Seno import Seno
+from backend.src.Interprete.nodes.expresiones.Shuffle import Shuffle
+from backend.src.Interprete.nodes.expresiones.Sort import Sort
 from backend.src.Interprete.nodes.expresiones.Umenos import Umenos
 from backend.src.Interprete.nodes.expresiones.Xor import Xor
+from backend.src.Interprete.nodes.expresiones.Suma import Suma
+from backend.src.Interprete.nodes.expresiones.Resta import Resta
+from backend.src.Interprete.nodes.expresiones.Multiplicacion import Multiplicacion
+from backend.src.Interprete.nodes.expresiones.Division import Division
+from backend.src.Interprete.nodes.expresiones.Potencia import Potencia
+from backend.src.Interprete.nodes.instrucciones.AsignacionVector import AsignacionVector
 from backend.src.Interprete.nodes.instrucciones.Break import Break
 from backend.src.Interprete.nodes.instrucciones.Case import Case
 from backend.src.Interprete.nodes.instrucciones.Continue import Continue
 from backend.src.Interprete.nodes.instrucciones.Decremento import Decremento
 from backend.src.Interprete.nodes.instrucciones.DoWhile import DoWhile
+from backend.src.Interprete.nodes.instrucciones.Execute import Execute
 from backend.src.Interprete.nodes.instrucciones.For import For
 from backend.src.Interprete.nodes.instrucciones.Incremento import Incremento
+from backend.src.Interprete.nodes.instrucciones.ParametroDefinicion import ParametroDefinicion
+from backend.src.Interprete.nodes.instrucciones.Procedimiento import Procedimiento
 from backend.src.Interprete.nodes.instrucciones.Switch import Switch
 from backend.src.Interprete.nodes.instrucciones.While import While
 from backend.src.Interprete.nodes.instrucciones.Asignacion import Asignacion
@@ -27,13 +42,9 @@ from backend.src.Interprete.nodes.instrucciones.Else import Else
 from backend.src.Interprete.nodes.instrucciones.If import If
 from backend.src.Interprete.nodes.instrucciones.IfElse import IfElse
 from backend.src.Interprete.nodes.instrucciones.IfElseIf import IfElseIf
-# from backend.src.Interprete.scanner import tokens
+from backend.src.Interprete.nodes.instrucciones.Vector import Vector
+from backend.src.Interprete.nodes.instrucciones.DeclaracionVector import DeclaracionVector
 from backend.src.Interprete.scanner import tokens, build_lexer
-from backend.src.Interprete.nodes.expresiones.Suma import Suma
-from backend.src.Interprete.nodes.expresiones.Resta import Resta
-from backend.src.Interprete.nodes.expresiones.Multiplicacion import Multiplicacion
-from backend.src.Interprete.nodes.expresiones.Division import Division
-from backend.src.Interprete.nodes.expresiones.Potencia import Potencia
 from backend.src.Interprete.nodes.nativos.Nativo import Nativo
 from backend.src.Interprete.simbol.ListaTipos import Tipos
 from backend.src.Interprete.nodes.instrucciones.Print import Println
@@ -53,30 +64,6 @@ precedence = (
     ('nonassoc','POTENCIA'),
     ('right','UMENOS'),
 )
-
-def p_sentencias_bucle(t):
-    '''sentencias_bucle : sentencias_bucle sentencia_bucle'''
-    t[0] = t[1]
-    t[0].append(t[2])  # Agrega la nueva sentencia a la lista de sentencias de bucle
-
-def p_sentencias_bucle_unica(t):
-    '''sentencias_bucle : sentencia_bucle'''
-    t[0] = list()
-    t[0].append(t[1])  # Crea una lista con la única sentencia de bucle
-
-def p_sentencia_bucle(t):
-    '''sentencia_bucle : sentencia'''
-    t[0] = t[1]  # La sentencia de bucle es una sentencia normal, se asigna directamente
-
-def p_sentencia_bucle_break(t):
-    '''sentencia_bucle : BREAK PUNTO_Y_COMA'''
-    # SE CREA UN NODO BREAK PARA SALIR DEL BUCLE
-    t[0] = Break(t[1], t.lineno(1), find_column(t, 1))  # Crea un nodo Break con el token y su posición
-
-def p_sentencia_bucle_continue(t):
-    '''sentencia_bucle : CONTINUE PUNTO_Y_COMA'''
-    # SE CREA UN NODO CONTINUE PARA SALTAR A LA SIGUIENTE ITERACION DEL BUCLE
-    t[0] = Continue(t[1], t.lineno(1), find_column(t, 1))  # Crea un nodo Continue con el token y su posición
 
 # ANALISIS SINTÁCTICO
 def p_programa(t):
@@ -101,6 +88,146 @@ def p_sentencia_print(t):
     '''sentencia : PRINT PARENTESIS_IZQ expresion PARENTESIS_DER PUNTO_Y_COMA'''
     t[0] = Println(t[3], t.lineno(1), find_column(t, 1))  # Crea un nodo Println con la expresión a imprimir
 
+'''PROCEDIMIENTOS -----------------'''
+def p_sentencia_declaracion_proc(t):
+    '''sentencia : PROC IDENTIFICADOR PARENTESIS_IZQ params PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
+    # SE CREA UN NODO PROC CON EL NOMBRE Y LAS INSTRUCCIONES
+    t[0] = Procedimiento(t[2], t[4], t[7], t.lineno(1), find_column(t, 1))  # Crea un nodo Procedimiento con el nombre, parámetros e instrucciones
+
+def p_params(t):
+    '''params : params param'''
+    # SE AGREGA UN NUEVO PARAMETRO A LA LISTA DE PARAMETROS
+    t[0] = t[1]
+    t[0].append(t[2])  # Agrega el nuevo parámetro
+
+def p_params_unico(t):
+    '''params : param'''
+    # SE CREA UNA LISTA CON UN SOLO PARAMETRO
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con el único parámetro
+
+def p_parametro(t):
+    '''param : tipo DOS_PUNTOS IDENTIFICADOR'''
+    # SE CREA UN NODO PARAMETRO CON EL TIPO Y EL IDENTIFICADOR
+    t[0] = ParametroDefinicion(t[1], t[3], t.lineno(1), find_column(t, 1))  # Crea un nodo ParametroDefinicion con el tipo y el identificador
+
+def p_sentencia_execute_proc(t):
+    '''sentencia : EXEC IDENTIFICADOR PARENTESIS_IZQ args PARENTESIS_DER PUNTO_Y_COMA'''
+    # SE CREA UN NODO NATIVE CON EL NOMBRE DEL PROCEDIMIENTO Y LOS ARGUMENTOS
+    t[0] = Execute(t[2], t[4], t.lineno(1), find_column(t, 1))  # Crea un nodo Execute con el nombre del procedimiento y los argumentos
+
+def p_args(t):
+    '''args : args COMA arg'''
+    # SE AGREGA UN NUEVO ARGUMENTO A LA LISTA DE ARGUMENTOS
+    t[0] = t[1]
+    t[0].append(t[3])  # Agrega el nuevo argumento
+
+def p_args_unico(t):
+    '''args : arg'''
+    # SE CREA UNA LISTA CON UN SOLO ARGUMENTO
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con el único argumento
+
+'''VECTORES --------------------'''
+def p_sentencia_declaracion_vector(t):
+    '''sentencia : declaracion_vector'''
+    # SE CREA UN NODO DECLARACION VECTOR CON EL TIPO, IDENTIFICADOR Y VALOR INICIAL
+    t[0] = t[1]  # La sentencia es una declaración de vector, se asigna directamente
+
+def p_declaracion_vector_valor(t):
+    '''declaracion_vector : declaracion_vector_valor'''
+    # SE CREA UN NODO DECLARACION VECTOR CON EL TIPO, IDENTIFICADOR Y VALORES
+    t[0] = t[1]
+
+def p_declaracion_vector_sin_valor(t):
+    '''declaracion_vector : declaracion_vector_sin_valor'''
+    # SE CREA UN NODO DECLARACION VECTOR CON EL TIPO Y IDENTIFICADOR, SIN VALORES INICIALES
+    t[0] = t[1]
+
+def p_declaracion_vector_sort(t):
+    '''declaracion_vector : declaracion_vector_sort'''
+    # SE CREA UN NODO DECLARACION VECTOR CON EL TIPO Y IDENTIFICADOR, SIN VALORES INICIALES
+    t[0] = t[1]
+
+def p_declaracion_vector_shuffle(t):
+    '''declaracion_vector : declaracion_vector_shuffle'''
+    # SE CREA UN NODO DECLARACION VECTOR CON EL TIPO Y IDENTIFICADOR, SIN VALORES INICIALES
+    t[0] = t[1]
+
+def p_vector_valor(t):
+    '''declaracion_vector_valor : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER IGUAL CORCHETE_IZQ vectores CORCHETE_DER PUNTO_Y_COMA'''
+    t[0] = DeclaracionVector(t[3], t[5], t[7], t[11], t.lineno(1), find_column(t, 6))
+
+def p_vector_valor_expresiones(t):
+    '''declaracion_vector_valor : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER IGUAL CORCHETE_IZQ expresiones CORCHETE_DER PUNTO_Y_COMA'''
+    t[0] = DeclaracionVector(t[3], t[5], t[7], t[11], t.lineno(1), find_column(t, 6))
+
+def p_vector_sin_valor(t):
+    '''declaracion_vector_sin_valor : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER PUNTO_Y_COMA'''
+    t[0] = DeclaracionVector(t[3], t[5], t[7], None, t.lineno(1), find_column(t, 1))
+
+def p_vector_sort(t):
+    '''declaracion_vector_sort : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER IGUAL sort PUNTO_Y_COMA'''
+    t[0] = DeclaracionVector(t[3], t[5], t[7], t[10], t.lineno(1), find_column(t, 1))
+
+def p_vector_shuffle(t):
+    '''declaracion_vector_shuffle : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER IGUAL shuffle PUNTO_Y_COMA'''
+    t[0] = DeclaracionVector(t[3], t[5], t[7], t[10], t.lineno(1), find_column(t, 1))
+
+def p_dimensiones(t):
+    '''dimensiones : dimensiones COMA dimension'''
+    # SE AGREGA UNA NUEVA DIMENSION A LA LISTA DE DIMENSIONES
+    t[0] = t[1]
+    t[0].append(t[3])  # Agrega la nueva dimensión a la lista de dimensiones
+
+def p_dimensiones_unico(t):
+    '''dimensiones : dimension'''
+    # SE CREA UNA LISTA CON UNA SOLA DIMENSION
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con la única dimensión
+
+def p_dimension(t):
+    '''dimension : ENTERO'''
+    t[0] = int(t[1])  # Convierte el valor de la dimensión a entero
+
+def p_vectores(t):
+    '''vectores : vectores COMA vector'''
+    # SE AGREGA UN NUEVO VECTOR A LA LISTA DE VECTORES
+    t[0] = t[1]
+    t[0].append(t[3])  # Agrega el nuevo vector a la lista de vectores
+
+def p_vectores_unico(t):
+    '''vectores : vector'''
+    # SE CREA UNA LISTA CON UN SOLO VECTOR
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con el único vector
+
+def p_vector(t):
+    '''vector : CORCHETE_IZQ expresiones CORCHETE_DER'''
+    # SE CREA UN NODO VECTOR CON LAS EXPRESIONES DENTRO DE LOS CORCHETES
+    t[0] = Vector(t[2], t.lineno(1), find_column(t, 1))  # Crea un nodo Vector con las expresiones dentro de los corchetes
+
+def p_vector_vectores(t):
+    '''vector : CORCHETE_IZQ vectores CORCHETE_DER'''
+    # SE CREA UN NODO VECTOR CON LAS EXPRESIONES DENTRO DE LOS CORCHETES
+    t[0] = Vector(t[2], t.lineno(1), find_column(t, 1))  # Crea un nodo Vector con las expresiones dentro de los corchetes
+
+def p_vector_asignacion(t):
+    '''asignacion_vector : IDENTIFICADOR indices IGUAL expresion PUNTO_Y_COMA'''
+    t[0] = AsignacionVector(t[1], t[2], t[4], t.lineno(1), find_column(t, 4))
+
+def p_expresiones(t):
+    '''expresiones : expresiones COMA expresion'''
+    # SE AGREGA UNA NUEVA EXPRESION A LA LISTA DE EXPRESIONES
+    t[0] = t[1]
+    t[0].append(t[3])  # Agrega la nueva expresión a la lista de expresiones
+
+def p_expresiones_unico(t):
+    '''expresiones : expresion'''
+    # SE CREA UNA LISTA CON UNA SOLA EXPRESION
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con la única expresión
+
 def p_sentencia_declaracion(t):
     '''sentencia : declaracion'''
     t[0] = t[1]  # La sentencia es una declaración, se asigna directamente
@@ -108,6 +235,11 @@ def p_sentencia_declaracion(t):
 def p_sentencia_asignacion(t):
     '''sentencia : asignacion'''
     t[0] = t[1]  # La sentencia es una asignación, se asigna directamente
+
+def p_sentencia_asignacion_vector(t):
+    '''sentencia : asignacion_vector'''
+    # SE CREA UN NODO ASIGNACION VECTOR CON EL IDENTIFICADOR Y LA EXPRESION
+    t[0] = t[1]  # La sentencia es una asignación de vector, se asigna directamente
 
 def p_sentencia_if(t):
     '''sentencia : sentenciaIf'''
@@ -285,6 +417,58 @@ def p_expresion_relacionales(t):
 def p_expresion_logica(t):
     '''expresion : logica'''
     t[0] = t[1]  # SE ASIGNA LA EXPRESION LOGICA A t[0]
+
+def p_expresion_id_k(t):
+    '''expresion : acceso_vector'''
+    # SE CREA UN NODO ACCESO VECTOR CON EL IDENTIFICADOR Y LA EXPRESION
+    t[0] = t[1]
+
+def p_expresion_seno(t):
+    '''expresion : SENO PARENTESIS_IZQ expresion PARENTESIS_DER'''
+    # SE CREA UN NODO SENO CON LA EXPRESION DENTRO DE LOS PARÉNTESIS
+    t[0] = Seno(t[3], Tipos.FLOAT ,t.lineno(1), find_column(t, 1))  # Retorna el seno de la expresión
+
+def p_expresion_coseno(t):
+    '''expresion : COSENO PARENTESIS_IZQ expresion PARENTESIS_DER'''
+    # SE CREA UN NODO COSENO CON LA EXPRESION DENTRO DE LOS PARÉNTESIS
+    t[0] = Coseno(t[3], Tipos.FLOAT ,t.lineno(1), find_column(t, 1))  # Retorna el coseno de la expresión
+
+def p_expresion_inversion(t):
+    '''expresion : INVERSION PARENTESIS_IZQ expresion PARENTESIS_DER'''
+    # SE CREA UN NODO INVERSION CON LA EXPRESION DENTRO DE LOS PARÉNTESIS
+    t[0] = Inversion(t[3], Tipos.INT ,t.lineno(1), find_column(t, 1))  # Retorna la inversion de la expresión
+
+def p_expresion_vector_sort(t):
+    '''sort : SORT PARENTESIS_IZQ IDENTIFICADOR PARENTESIS_DER'''
+    # SE CREA UN NODO VECTOR SORT CON EL ACCESO AL VECTOR
+    t[0] = Sort(t[3], t.lineno(1), find_column(t, 4))  # Retorna el acceso al vector con la expresión de índice
+
+def p_expresion_vector_shuffle(t):
+    '''shuffle : SHUFFLE PARENTESIS_IZQ IDENTIFICADOR PARENTESIS_DER'''
+    # SE CREA UN NODO VECTOR SHUFFLE CON EL ACCESO AL VECTOR
+    t[0] = Shuffle(t[3], t.lineno(1), find_column(t, 4))  # Retorna el acceso al vector con la expresión de índice
+
+def p_acceso_vector(t):
+    '''acceso_vector : IDENTIFICADOR indices'''
+    # SE CREA UN NODO ACCESO VECTOR CON EL IDENTIFICADOR Y LA EXPRESION
+    t[0] = AccesoVector(t[1], t[2], t.lineno(1), find_column(t, 1))  # Retorna el acceso al vector con la expresión de índice
+
+def p_indices(t):
+    '''indices : indices indice'''
+    # SE CREA UNA LISTA CON LOS ÍNDICES
+    t[0] = t[1]
+    t[0].append(t[2])  # Agrega el nuevo índice a la lista
+
+def p_indices_unico(t):
+    '''indices : indice'''
+    # SE CREA UNA LISTA CON UN SOLO INDICE
+    t[0] = list()
+    t[0].append(t[1])  # Crea una lista con el único índice
+
+def p_indice(t):
+    '''indice : CORCHETE_IZQ expresion CORCHETE_DER'''
+    # SE CREA UN NODO INDICE CON LA EXPRESION DENTRO DE LOS CORCHETES
+    t[0] = t[2]  # Retorna la expresión dentro de los corchetes como índice
 
 def p_expresion_identificador(t):
     '''expresion : IDENTIFICADOR'''

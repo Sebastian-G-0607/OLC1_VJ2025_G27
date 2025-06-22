@@ -50,11 +50,21 @@ tokens = (
     'DEFAULT',
     'LLAVE_IZQ',
     'LLAVE_DER',
+    'CORCHETE_IZQ',
+    'CORCHETE_DER',
     'WHILE',
     'FOR',
     'DO',
     'BREAK',
     'CONTINUE',
+    'PROC',
+    'EXEC',
+    'VECTOR',
+    'SENO',
+    'COSENO',
+    'INVERSION',
+    'SHUFFLE',
+    'SORT',
 )
 
 # EXPRESIONES REGULARES PARA PALABRAS Y SÍMBOLOS RESERVADOS DEL LENGUAJE
@@ -84,8 +94,28 @@ t_PARENTESIS_IZQ = r'\('
 t_PARENTESIS_DER = r'\)'
 t_LLAVE_IZQ = r'\{'
 t_LLAVE_DER = r'\}'
+t_CORCHETE_IZQ = r'\['
+t_CORCHETE_DER = r'\]'
 
 #PALABRAS RESERVADAS DEL LENGUAJE
+def t_PROC(t):
+    r'[Pp][Rr][Oo][Cc]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_EXEC(t):
+    r'[Ee][Xx][Ee][Cc]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_VECTOR(t):
+    r'[Vv][Ee][Cc][Tt][Oo][Rr]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
 def t_PRINT(t):
     r'[Pp][Rr][Ii][Nn][Tt][Ll][Nn]'
     t.value = str(t.value)
@@ -166,6 +196,51 @@ def t_FALSE(t):
         t.value = 'false'
     return t
 
+def t_SENO(t):
+    r'[Ss][Ee][Nn][Oo]'
+    try:
+        t.value = 'seno'
+    except ValueError:
+        print(f"Valor inválido para SENO: {t.value}")
+        t.value = 'seno'
+    return t
+
+def t_COSENO(t):
+    r'[Cc][Oo][Ss][Ee][Nn][Oo]'
+    try:
+        t.value = 'coseno'
+    except ValueError:
+        print(f"Valor inválido para COSENO: {t.value}")
+        t.value = 'coseno'
+    return t
+
+def t_INVERSION(t):
+    r'[Ii][Nn][Vv]'
+    try:
+        t.value = t.value.lower()
+    except ValueError:
+        print(f"Valor inválido para INVERSION: {t.value}")
+        t.value = 'inv'
+    return t
+
+def t_SHUFFLE(t):
+    r'[Ss][Hh][Uu][Ff][Ff][Ll][Ee]'
+    try:
+        t.value = t.value.lower()
+    except ValueError:
+        print(f"Valor inválido para SHUFFLE: {t.value}")
+        t.value = 'shuffle'
+    return t
+
+def t_SORT(t):
+    r'[Ss][Oo][Rr][Tt]'
+    try:
+        t.value = t.value.lower()
+    except ValueError:
+        print(f"Valor inválido para SORT: {t.value}")
+        t.value = 'sort'
+    return t
+
 def t_TIPO_FLOAT(t):
     r'[Ff][Ll][Oo][Aa][Tt]\b'
     try:
@@ -217,7 +292,6 @@ def t_TIPO_STR(t):
     return t
 
 # EXPRESIONES REGULARES PARA TOKENS DEL LENGUAJE
-
 def t_IDENTIFICADOR(t):
     r'[a-zA-Z][a-zA-Z0-9_]*'
     try:

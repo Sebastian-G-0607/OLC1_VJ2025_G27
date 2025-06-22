@@ -1,3 +1,4 @@
+from backend.src.Interprete.simbol.Vector import Vector
 from backend.src.Interprete.simbol.Simbolo import Symbol
 
 class SingletonMeta(type):
@@ -54,13 +55,43 @@ class SymbolTable(metaclass=SingletonMeta):
         self.symbols.append(sym)
         return sym
 
-    def add_function(self, name, return_type, params=None, line=None, column=None):
+    def add_vector(self, name, data_type, value=None, dimensions=None, line=None, column=None):
+        """Agregar o reemplazar un vector en el scope actual."""
+        # Elimina el vector anterior si ya existe en el mismo scope
+        self.symbols = [
+            sym for sym in self.symbols
+            if not (sym.entity_type == 'vector' and sym.name == name and sym.scope == self.current_scope)
+        ]
+
+        # Agrega el nuevo vector como símbolo
+        sym = Vector(name=name, entity_type='vector', data_type=data_type,
+            value=value, scope=self.current_scope, dimensions=dimensions,
+            line=line, column=column)
+        self.symbols.append(sym)
+        return sym
+
+    def add_function(self, name, params=None, line=None, column=None):
         """Agregar una función al scope actual."""
-        sym = Symbol(name=name, entity_type='function', data_type=return_type,
+        sym = Symbol(name=name, entity_type='function', data_type=None,
             value={'params': params or []}, scope=self.current_scope,
             line=line, column=column)
         self.symbols.append(sym)
         return sym
+    
+    def get_function(self, name, scope=None):
+        """Recuperar una función buscando desde el scope dado hacia global."""
+        scope = scope or self.current_scope
+        # Busca en el scope actual
+        for sym in reversed(self.symbols):
+            if sym.entity_type == 'function' and sym.name == name and sym.scope == scope:
+                return sym.name
+        # Si no está, busca en scopes anteriores (más globales)
+        idx = self.scopes.index(scope)
+        for prev in reversed(self.scopes[:idx]):
+            for sym in reversed(self.symbols):
+                if sym.entity_type == 'function' and sym.name == name and sym.scope == prev:
+                    return sym.name
+        raise KeyError(f"Función '{name}' no encontrada")
 
     def get_variable(self, name, scope=None):
         """Recuperar valor buscando desde el scope dado hacia global."""
@@ -76,6 +107,54 @@ class SymbolTable(metaclass=SingletonMeta):
                 if sym.entity_type == 'variable' and sym.name == name and sym.scope == prev:
                     return sym.value, sym.data_type
         raise KeyError(f"Variable '{name}' no encontrada")
+    
+    def get_vector_pos(self, name, scope=None):
+        """Recuperar valor buscando desde el scope dado hacia global."""
+        scope = scope or self.current_scope
+        # Busca en el scope actual
+        for sym in reversed(self.symbols):
+            if sym.entity_type == 'vector' and sym.name == name and sym.scope == scope:
+                return sym.value, sym.data_type
+        # Si no está, busca en scopes anteriores (más globales)
+        idx = self.scopes.index(scope)
+        for prev in reversed(self.scopes[:idx]):
+            for sym in reversed(self.symbols):
+                if sym.entity_type == 'vector' and sym.name == name and sym.scope == prev:
+                    return sym.value, sym.data_type
+        raise KeyError(f"Vector '{name}' no encontrada")
+
+    def get_vector(self, name, shuffle=False, scope=None):
+        """
+        Recupera una lista con los valores de todos los símbolos cuyo nombre contiene 'name'
+        en el scope dado (o en todos los scopes accesibles).
+        """
+        scope = scope or self.current_scope
+        results = []
+        dimensions = None
+        ultimo = None
+        tipo = None
+
+        # Buscar en el scope actual y en los scopes accesibles (desde el actual hacia el global)
+        idx = self.scopes.index(scope)
+        accessible_scopes = list(reversed(self.scopes[:idx + 1]))
+
+        for current_scope in accessible_scopes:
+            for sym in self.symbols:
+                if (
+                    sym.entity_type == 'vector'
+                    and name in sym.name
+                    and sym.scope == current_scope
+                ):
+                    results.append(sym.value)
+                    dimensions = sym.dimensions  # Asume que todos los vectores tienen las mismas dimensiones
+                    ultimo = sym.name
+                    tipo = sym.data_type
+
+        if not results:
+            raise KeyError(f"No se encontraron vectores que contengan '{name}' en ningún scope accesible desde '{scope}'")
+        if not shuffle:
+            return results, dimensions
+        return results, dimensions, ultimo
 
     def update_variable(self, name, new_value, scope=None):
         """Actualizar el valor de la variable más cercana en el scope actual o superior."""
@@ -86,6 +165,20 @@ class SymbolTable(metaclass=SingletonMeta):
         for current_scope in reversed(self.scopes[:idx + 1]):
             for sym in reversed(self.symbols):
                 if sym.entity_type == 'variable' and sym.name == name and sym.scope == current_scope:
+                    sym.value = new_value
+                    return sym
+
+        raise KeyError(f"Variable '{name}' no encontrada en ningún scope accesible desde '{scope}'")
+    
+    def update_vector_pos(self, name, new_value, scope=None):
+        """Actualizar el valor de la posición de un vector en el scope actual o superior."""
+        scope = scope or self.current_scope
+        idx = self.scopes.index(scope)
+
+        # Busca la variable desde el scope actual hacia el global
+        for current_scope in reversed(self.scopes[:idx + 1]):
+            for sym in reversed(self.symbols):
+                if sym.entity_type == 'vector' and sym.name == name and sym.scope == current_scope:
                     sym.value = new_value
                     return sym
 

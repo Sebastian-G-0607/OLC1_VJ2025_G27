@@ -1,5 +1,10 @@
+import math
+from backend.src.Interprete.nodes.expresiones.Shuffle import Shuffle
+from backend.src.Interprete.nodes.expresiones.Sort import Sort
 from backend.src.Interprete.nodes.instrucciones.Break import Break
 from backend.src.Interprete.nodes.instrucciones.Continue import Continue
+from backend.src.Interprete.nodes.instrucciones.Execute import Execute
+from backend.src.Interprete.nodes.instrucciones.Procedimiento import Procedimiento
 from backend.src.Interprete.nodes.nativos.Nativo import Nativo
 from backend.src.Interprete.semanticas.semanticaDeclaracion import validarDeclaracion
 from backend.src.Interprete.semanticas.semanticaSuma import validar_suma
@@ -27,6 +32,9 @@ from backend.src.Interprete.simbol.RaizArbol import Arbol
 from backend.src.Interprete.errors.Error import Error
 from backend.src.Interprete.simbol.InstanciaTabla import st
 from backend.src.Interprete.simbol.ListaErrores import errores
+from backend.src.Interprete.semanticas.semanticaDimensiones import recorrer_dimensiones, save_row_major, validar_tipos
+import re
+import numpy as np
 
 class Visitor_Output(Visitor):
     def __init__(self, Arbol: Arbol):
@@ -742,3 +750,319 @@ class Visitor_Output(Visitor):
 
     def visit_Continue(self, nodo: Nodo, ciclo = False):
         return nodo
+
+    def visit_Vector(self, nodo: Nodo):
+        lista = []
+        for elemento in nodo.elementos:
+            valor = elemento.accept(self)
+            if isinstance(valor, Error):
+                errores.append(valor)
+                return valor
+            lista.append(valor)
+        return lista
+
+    def visit_DeclaracionVector(self, nodo: Nodo):
+        match nodo.tipo:
+            case 'int':
+                nodo.tipo = Tipos.INT
+            case 'float':
+                nodo.tipo = Tipos.FLOAT
+            case 'bool':
+                nodo.tipo = Tipos.BOOL
+            case 'char':
+                nodo.tipo = Tipos.CHAR
+            case 'str':
+                nodo.tipo = Tipos.STRING
+
+        lista = []
+        #SI VIENE UN VECTOR CON VALORES
+        if isinstance(nodo.valores, list):
+            if nodo.valores is None:
+            # Si no hay valores, se crea un vector vacío
+                return
+            
+            # PRIMERO VALIDO QUE EL NÚMERO DE ELEMENTOS SEA EL CORRECTO
+            if len(nodo.valores) != nodo.dimensiones[0]:
+                error = Error("semántico", f'El número de valores del vector {nodo.identificador} no coincide con el número de dimensiones', nodo.linea, nodo.columna)
+                errores.append(error)
+                return error
+
+            for valor in nodo.valores:
+                valorAceptado = valor.accept(self)
+                if isinstance(valorAceptado, Error):
+                    errores.append(valorAceptado)
+                    return valorAceptado
+                lista.append(valorAceptado)
+
+            # VALIDAR LAS DIMENSIONES DEL VECTOR
+            newlista = recorrer_dimensiones(lista, nodo.dimensiones, nodo.linea, nodo.columna, nodo.identificador)
+            if isinstance(newlista, Error):
+                errores.append(newlista)
+                return newlista
+
+            # VALIDAR TIPOS
+            validacion_semantica = validar_tipos(nodo.identificador, lista, nodo.tipo, nodo.dimensiones, nodo.linea, nodo.columna)
+            if validacion_semantica is not True:
+                errores.append(validacion_semantica)
+                return validacion_semantica
+
+            # GUARDAR EL VECTOR EN LA TABLA DE SÍMBOLOS
+            save_row_major(lista, nodo.dimensiones, nodo.identificador, nodo.tipo, nodo.linea, nodo.columna)
+
+            return lista
+        
+        # SI VIENE UNA FUNCIÓN SORT
+        elif isinstance(nodo.valores, Sort):
+            vector_sort = nodo.valores.accept(self)
+            if isinstance(vector_sort, Error):
+                errores.append(vector_sort)
+                return vector_sort
+            #VALIDAR QUE EL VECTOR ES UNIDIMENSIONAL
+            if len(nodo.dimensiones) != 1:
+                error = Error("semántico", f'El vector {nodo.identificador} debe ser unidimensional para poder ordenarlo', nodo.linea, nodo.columna)
+                errores.append(error)
+                return error
+            
+            # VALIDAR LAS DIMENSIONES DEL VECTOR
+            newlista = recorrer_dimensiones(vector_sort, nodo.dimensiones, nodo.linea, nodo.columna, nodo.identificador)
+            if isinstance(newlista, Error):
+                errores.append(newlista)
+                return newlista
+
+            # VALIDAR TIPOS
+            validacion_semantica = validar_tipos(nodo.identificador, vector_sort, nodo.tipo, nodo.dimensiones, nodo.linea, nodo.columna)
+            if validacion_semantica is not True:
+                errores.append(validacion_semantica)
+                return validacion_semantica
+            
+            #GUARDAR EL VECTOR EN LA TABLA DE SÍMBOLOS
+            save_row_major(vector_sort, nodo.dimensiones, nodo.identificador, nodo.tipo, nodo.linea, nodo.columna)
+            return vector_sort
+
+        elif isinstance(nodo.valores, Shuffle):
+            vector_shuffle = nodo.valores.accept(self)
+            print("VECTOR SHUFFLE")
+            print(vector_shuffle)
+            print("SU TIPO")
+            print(type(vector_shuffle))
+            if isinstance(vector_shuffle, Error):
+                errores.append(vector_shuffle)
+                return vector_shuffle
+            
+            # VALIDAR LAS DIMENSIONES DEL VECTOR
+            newlista = recorrer_dimensiones(vector_shuffle, nodo.dimensiones, nodo.linea, nodo.columna, nodo.identificador)
+            if isinstance(newlista, Error):
+                errores.append(newlista)
+                return newlista
+
+            # VALIDAR TIPOS
+            validacion_semantica = validar_tipos(nodo.identificador, vector_shuffle, nodo.tipo, nodo.dimensiones, nodo.linea, nodo.columna)
+            if validacion_semantica is not True:
+                errores.append(validacion_semantica)
+                return validacion_semantica
+            
+            #GUARDAR EL VECTOR EN LA TABLA DE SÍMBOLOS
+            save_row_major(vector_shuffle, nodo.dimensiones, nodo.identificador, nodo.tipo, nodo.linea, nodo.columna)
+            return vector_shuffle
+        
+    
+    def visit_AccesoVector(self, nodo: Nodo):
+
+        pos = ""
+        for indice in nodo.indices:
+            resultado = indice.accept(self)
+            if isinstance(resultado, Error):
+                errores.append(resultado)
+                return resultado
+            if not isinstance(resultado, int):
+                if resultado.tipo not in [Tipos.INT, Tipos.FLOAT]:
+                    error = Error("semántico", f'El índice del vector {nodo.id} debe ser de tipo entero o flotante', nodo.linea, nodo.columna)
+                    errores.append(error)
+                    return error
+            pos += f"[{resultado}]"
+
+        acceso = nodo.id + pos
+
+        # OBTENGO EL SIMBOLO DEL VECTOR
+        try:
+            simbolo, tipo = st.get_vector_pos(acceso)
+            nodo.tipo = tipo  # Actualizar el tipo del nodo
+        except KeyError:
+            error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        
+        nativo = Nativo(tipo, simbolo)
+        return nativo.accept(self)
+    
+    def visit_AsignacionVector(self, nodo: Nodo):
+        pos = ""
+        for indice in nodo.indices:
+            resultado = indice.accept(self)
+            if isinstance(resultado, Error):
+                errores.append(resultado)
+                return resultado
+            if not isinstance(resultado, int):
+                if resultado.tipo not in [Tipos.INT, Tipos.FLOAT]:
+                    error = Error("semántico", f'El índice del vector {nodo.id} debe ser de tipo entero o flotante', nodo.linea, nodo.columna)
+                    errores.append(error)
+                    return error
+            pos += f"[{resultado}]"
+
+        acceso = nodo.id + pos
+        valor = nodo.valor.accept(self)
+        if isinstance(valor, Error):
+            errores.append(valor)
+            return valor
+        # OBTENGO EL TIPO DEL VECTOR
+        try:
+            tipo = st.get_vector_pos(acceso)[1]
+        except KeyError:
+            error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        # VERIFICO SI EL TIPO DEL VALOR ES EL MISMO QUE EL DEL VECTOR
+        if tipo == nodo.valor.tipo:
+            try:
+                st.update_vector_pos(acceso, valor)
+                return
+            except KeyError:
+                error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+                errores.append(error)
+                return error
+        else:
+            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} a una variable de tipo {tipo}', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+    def visit_Seno(self, nodo: Nodo):
+        valor = nodo.expresion.accept(self)
+        if isinstance(valor, Error):
+            errores.append(valor)
+            return valor
+        if nodo.expresion.tipo not in [Tipos.INT, Tipos.FLOAT]:
+            error = Error("semántico", f'La expresión del Seno debe ser de tipo entero o flotante', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        resultado = math.sin(valor)
+        return resultado
+    
+    def visit_Coseno(self, nodo: Nodo):
+        valor = nodo.expresion.accept(self)
+        if isinstance(valor, Error):
+            errores.append(valor)
+            return valor
+        if nodo.expresion.tipo not in [Tipos.INT, Tipos.FLOAT]:
+            error = Error("semántico", f'La expresión del Coseno debe ser de tipo entero o flotante', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        resultado = math.cos(valor)
+        return resultado
+    
+    def visit_Inversion(self, nodo: Nodo):
+        valor = nodo.expresion.accept(self)
+        if isinstance(valor, Error):
+            errores.append(valor)
+            return valor
+        if nodo.expresion.tipo not in [Tipos.INT]:
+            error = Error("semántico", f'La expresión de la Inversión debe ser de tipo entero', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        resultado = int(str(abs(valor))[::-1])
+        if valor < 0:
+            resultado = -resultado
+        return resultado
+    
+    def visit_Sort(self, nodo: Nodo):
+        try:
+            vector, dimensiones = st.get_vector(nodo.vector)
+        except KeyError:
+            error = Error("semántico", f'El vector {nodo.vector} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        
+        if dimensiones != 1:
+            error = Error("semántico", f'El vector {nodo.vector} debe ser unidimensional para poder ordenarlo', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+        if isinstance(vector, Error):
+            errores.append(vector)
+            return vector
+        
+        if not vector:
+            error = Error("semántico", f'El vector {nodo.vector} está vacío', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+        # Ordenar el vector de menor a mayor
+        vector.sort()
+        # Actualizar el vector en la tabla de símbolos si es necesario
+        return vector
+    
+    def visit_Shuffle(self, nodo: Nodo):
+        try:
+            vector, dimensiones, ultimo = st.get_vector(nodo.vector, shuffle=True)
+        except KeyError:
+            error = Error("semántico", f'El vector {nodo.vector} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+        if isinstance(vector, Error):
+            errores.append(vector)
+            return vector
+
+        if not vector:
+            error = Error("semántico", f'El vector {nodo.vector} está vacío', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+        # Buscar todos los números entre corchetes
+        dims = [int(x) + 1 for x in re.findall(r'\[(\d+)\]', ultimo)]
+        # Ahora dims contiene las dimensiones incrementadas en 1
+        try:
+            # Calcular la representación column major como un arreglo multidimensional
+            arr = np.array(vector).reshape(dims, order='F')  # reshape en column-major order
+            column_major = arr.tolist()  # convertir a lista de Python conservando dimensiones
+        except Exception as e:
+            err = Error("semántico", f'Error al calcular la representación column major: {e}', nodo.linea, nodo.columna)
+            errores.append(err)
+            return err
+        return column_major
+    
+    def visit_Procedimiento(self, nodo: Nodo):
+        # PRIMERO REVISO SI DENTRO DE SUS INSTRUCCIONES NO TIENE UNA INSTRUCCIÓN INSTANCIA DE Procedimiento
+        for instruccion in nodo.instrucciones:
+            if isinstance(instruccion, Procedimiento):
+                error = Error("semántico", f'No se puede declarar un procedimiento dentro de otro procedimiento', instruccion.linea, instruccion.columna)
+                errores.append(error)
+                return error
+            if isinstance(instruccion, Execute):
+                    error = Error("semántico", f'No se puede llamar al procedimiento "{nodo.id}" desde su propia definición', instruccion.linea, instruccion.columna)
+                    errores.append(error)
+                    return error 
+
+        # AÑADO EL PROCEDIMIENTO A LA TABLA DE SÍMBOLOS
+        try:
+            st.add_function(nodo.id)
+        except Exception as e:
+            error = Error("semántico", f'Error al añadir el procedimiento {nodo.id} a la tabla de símbolos: {str(e)}', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        
+        # AÑADO EL PROCEDIMIENTO AL AST
+        self.Arbol.addProcedimiento(nodo)
+        return
+    
+    def visit_Execute(self, nodo: Nodo):
+        # PRIMERO REVISO SI EL PROCEDIMIENTO ESTÁ DECLARADO
+        nombre = st.get_function(nodo.id)
+        if isinstance(nombre, Error):
+            errores.append(nombre)
+            return nombre
+
+        # LUEGO, BUSCO LA DEFINICIÓN DEL PROCEDIMIENTO EN EL AST
+        procedimiento = self.Arbol.findProcedimiento(nodo.id)
+
+        # ASIGNO LOS PARÁMETROS DEL PROCEDIMIENTO
+        if procedimiento.parametros is not None:
