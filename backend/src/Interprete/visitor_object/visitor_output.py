@@ -1043,8 +1043,11 @@ class Visitor_Output(Visitor):
                     return error 
 
         # AÑADO EL PROCEDIMIENTO A LA TABLA DE SÍMBOLOS
+        params = []
+        for param in nodo.parametros:
+            params.append({'id': str(param.id), 'tipo': str(param.tipo)})
         try:
-            st.add_function(nodo.id)
+            st.add_function(nodo.id, params)
         except Exception as e:
             error = Error("semántico", f'Error al añadir el procedimiento {nodo.id} a la tabla de símbolos: {str(e)}', nodo.linea, nodo.columna)
             errores.append(error)
@@ -1056,13 +1059,63 @@ class Visitor_Output(Visitor):
     
     def visit_Execute(self, nodo: Nodo):
         # PRIMERO REVISO SI EL PROCEDIMIENTO ESTÁ DECLARADO
-        nombre = st.get_function(nodo.id)
+        try:
+            nombre = st.get_function(nodo.identificador)
+        except KeyError:
+            error = Error("semántico", f'El procedimiento {nodo.identificador} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        
         if isinstance(nombre, Error):
             errores.append(nombre)
             return nombre
 
         # LUEGO, BUSCO LA DEFINICIÓN DEL PROCEDIMIENTO EN EL AST
-        procedimiento = self.Arbol.findProcedimiento(nodo.id)
+        procedimiento = self.Arbol.findProcedimiento(nodo.identificador)
+        if procedimiento is None:
+            error = Error("semántico", f'El procedimiento {nodo.identificador} no está definido en el AST', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
 
         # ASIGNO LOS PARÁMETROS DEL PROCEDIMIENTO
-        if procedimiento.parametros is not None:
+        if len(procedimiento.parametros) == 0:
+            if len(nodo.args) != 0:
+                error = Error("semántico", f'El procedimiento {nodo.identificador} no acepta parámetros', nodo.linea, nodo.columna)
+                errores.append(error)
+                return error
+
+        # SI EL PROCEDIMIENTO TIENE PARÁMETROS, VERIFICO QUE EN CANTIDAD COINCIDAN
+        elif len(procedimiento.parametros) != len(nodo.args):
+            error = Error("semántico", f'El procedimiento {nodo.identificador} espera {len(procedimiento.parametros)} parámetros, pero recibió {len(nodo.args)}', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+        # SI EL PROCEDIMIENTO TIENE PARÁMETROS, SE VERIFICA QUE LOS TIPOS COINCIDAN        
+        st.new_scope(f'proc_{nodo.identificador}_{nodo.id}')
+        for i, arg in enumerate(nodo.args):
+            if i < len(procedimiento.parametros):
+                tipo_parametro = procedimiento.parametros[i].tipo
+                valor = arg.accept(self)
+                if arg.tipo != tipo_parametro:
+                    error = Error("semántico", f'El argumento {i + 1} del procedimiento {nodo.identificador} debe ser de tipo {tipo_parametro}, pero recibió {arg.tipo}', nodo.linea, nodo.columna)
+                    errores.append(error)
+                    st.exit_scope()
+                    return error
+                #SI LOS TIPOS COINCIDEN, AÑADO EL PARÁMETRO A LA TABLA DE SÍMBOLOS
+                st.add_variable(procedimiento.parametros[i].id, tipo_parametro, valor)
+
+        # EJECUTO LAS INSTRUCCIONES DEL PROCEDIMIENTO
+        for instruccion in procedimiento.instrucciones:
+            resultado = instruccion.accept(self)
+            if isinstance(resultado, Error):
+                st.exit_scope()
+                return resultado
+            if isinstance(resultado, Break):
+                st.exit_scope()
+                return resultado
+            if isinstance(resultado, Continue):
+                st.exit_scope()
+                return resultado
+        # SALGO DEL SCOPE DEL PROCEDIMIENTO
+        st.exit_scope()
+        return

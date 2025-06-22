@@ -95,16 +95,20 @@ def p_sentencia_declaracion_proc(t):
     t[0] = Procedimiento(t[2], t[4], t[7], t.lineno(1), find_column(t, 1))  # Crea un nodo Procedimiento con el nombre, parámetros e instrucciones
 
 def p_params(t):
-    '''params : params param'''
+    '''params : params COMA param'''
     # SE AGREGA UN NUEVO PARAMETRO A LA LISTA DE PARAMETROS
     t[0] = t[1]
-    t[0].append(t[2])  # Agrega el nuevo parámetro
+    t[0].append(t[3])  # Agrega el nuevo parámetro
 
 def p_params_unico(t):
     '''params : param'''
     # SE CREA UNA LISTA CON UN SOLO PARAMETRO
     t[0] = list()
     t[0].append(t[1])  # Crea una lista con el único parámetro
+
+def p_params_vacio(t):
+    '''params : '''
+    t[0] = []
 
 def p_parametro(t):
     '''param : tipo DOS_PUNTOS IDENTIFICADOR'''
@@ -127,6 +131,44 @@ def p_args_unico(t):
     # SE CREA UNA LISTA CON UN SOLO ARGUMENTO
     t[0] = list()
     t[0].append(t[1])  # Crea una lista con el único argumento
+
+def p_args_vacio(t):
+    '''args : '''
+    t[0] = []  # Crea una lista vacía de argumentos
+
+def p_arg_Identificador(t):
+    '''arg : IDENTIFICADOR'''
+    # SE CREA UN NODO ARGUMENTO CON LA EXPRESIÓN
+    t[0] = AccesoVariable(t[1], t.lineno(1), find_column(t, 1))
+
+def p_arg_entero(t):
+    '''arg : ENTERO'''
+    t[0] = Nativo(Tipos.INT, int(t[1]), t.lineno(1), find_column(t, 1))
+
+def p_arg_flotante(t):
+    '''arg : FLOTANTE'''
+    t[0] = Nativo(Tipos.FLOAT, float(t[1]), t.lineno(1), find_column(t, 1))
+
+def p_arg_true(t):
+    '''arg : TRUE'''
+    t[0] = Nativo(Tipos.BOOL, True, t.lineno(1), find_column(t, 1))
+
+def p_arg_false(t):
+    '''arg : FALSE'''
+    t[0] = Nativo(Tipos.BOOL, False, t.lineno(1), find_column(t, 1))
+
+def p_arg_cadena(t):
+    '''arg : CADENA'''
+    t[0] = Nativo(Tipos.STRING, str(t[1]), t.lineno(1), find_column(t, 1))
+
+def p_arg_caracter(t):
+    '''arg : CARACTER'''
+    t[0] = Nativo(Tipos.CHAR, str(t[1]), t.lineno(1), find_column(t, 1))
+
+def p_arg_vector(t):
+    '''arg : acceso_vector'''
+    # SE CREA UN NODO ACCESO VECTOR CON EL IDENTIFICADOR Y LOS ÍNDICES
+    t[0] = t[1]  # El argumento es un acceso a un vector, se asigna directamente
 
 '''VECTORES --------------------'''
 def p_sentencia_declaracion_vector(t):

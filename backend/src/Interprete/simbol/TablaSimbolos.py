@@ -72,8 +72,8 @@ class SymbolTable(metaclass=SingletonMeta):
 
     def add_function(self, name, params=None, line=None, column=None):
         """Agregar una función al scope actual."""
-        sym = Symbol(name=name, entity_type='function', data_type=None,
-            value={'params': params or []}, scope=self.current_scope,
+        sym = Symbol(name=name, entity_type='function', data_type="Void",
+            value='', scope=self.current_scope,
             line=line, column=column)
         self.symbols.append(sym)
         return sym
