@@ -40,6 +40,13 @@ class SymbolTable(metaclass=SingletonMeta):
             return self.scopes.pop()                # Elimina el scope actual
         raise RuntimeError("No se puede eliminar el scope global")  # No se puede eliminar el global
 
+    def get_scope_proc(self, nombre):
+        """
+        Devuelve todos los símbolos cuyo scope coincide exactamente con 'proc_{nombre}_'.
+        """
+        scope_name = f"proc_{nombre}_"
+        return [sym for sym in self.symbols if sym.scope.startswith(scope_name)]
+
     def add_variable(self, name, data_type, value=None, line=None, column=None):
         """Agregar o reemplazar una variable en el scope actual."""
         # Elimina la variable anterior si ya existe en el mismo scope
@@ -125,7 +132,7 @@ class SymbolTable(metaclass=SingletonMeta):
 
     def get_vector(self, name, shuffle=False, scope=None):
         """
-        Recupera una lista con los valores de todos los símbolos cuyo nombre contiene 'name'
+        Recupera una lista con los valores de todos los símbolos cuyo nombre comienza con 'name'
         en el scope dado (o en todos los scopes accesibles).
         """
         scope = scope or self.current_scope
@@ -142,7 +149,7 @@ class SymbolTable(metaclass=SingletonMeta):
             for sym in self.symbols:
                 if (
                     sym.entity_type == 'vector'
-                    and name in sym.name
+                    and sym.name.startswith(name)
                     and sym.scope == current_scope
                 ):
                     results.append(sym.value)
@@ -151,10 +158,25 @@ class SymbolTable(metaclass=SingletonMeta):
                     tipo = sym.data_type
 
         if not results:
-            raise KeyError(f"No se encontraron vectores que contengan '{name}' en ningún scope accesible desde '{scope}'")
+            raise KeyError(f"No se encontraron vectores que comiencen con '{name}' en ningún scope accesible desde '{scope}'")
         if not shuffle:
-            return results, dimensions
+            return results, dimensions, tipo
         return results, dimensions, ultimo
+
+    def vector_exists(self, name, scope=None):
+        """Verifica si un vector con el nombre dado existe en el scope actual o superior."""
+        scope = scope or self.current_scope
+        # Busca en el scope actual
+        for sym in reversed(self.symbols):
+            if sym.entity_type == 'vector' and sym.name.startswith(name) and sym.scope == scope:
+                return True
+        # Si no está, busca en scopes anteriores (más globales)
+        idx = self.scopes.index(scope)
+        for prev in reversed(self.scopes[:idx]):
+            for sym in reversed(self.symbols):
+                if sym.entity_type == 'vector' and sym.name.startswith(name) and sym.scope == prev:
+                    return True
+        return False
 
     def update_variable(self, name, new_value, scope=None):
         """Actualizar el valor de la variable más cercana en el scope actual o superior."""

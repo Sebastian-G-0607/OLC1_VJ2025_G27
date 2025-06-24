@@ -815,7 +815,6 @@ class Visitor_Output(Visitor):
         elif isinstance(nodo.valores, Sort):
             vector_sort = nodo.valores.accept(self)
             if isinstance(vector_sort, Error):
-                errores.append(vector_sort)
                 return vector_sort
             #VALIDAR QUE EL VECTOR ES UNIDIMENSIONAL
             if len(nodo.dimensiones) != 1:
@@ -881,6 +880,13 @@ class Visitor_Output(Visitor):
                     return error
             pos += f"[{resultado}]"
 
+        # VERIFICO SI EL VECTOR EXISTE
+        existe = st.vector_exists(nodo.id)
+        if not existe:
+            error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
         acceso = nodo.id + pos
 
         # OBTENGO EL SIMBOLO DEL VECTOR
@@ -888,7 +894,7 @@ class Visitor_Output(Visitor):
             simbolo, tipo = st.get_vector_pos(acceso)
             nodo.tipo = tipo  # Actualizar el tipo del nodo
         except KeyError:
-            error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+            error = Error("semántico", f'El índice del arreglo {nodo.id} está fuera de rango', nodo.linea, nodo.columna)
             errores.append(error)
             return error
         
@@ -914,11 +920,18 @@ class Visitor_Output(Visitor):
         if isinstance(valor, Error):
             errores.append(valor)
             return valor
+        #VERIFICO SI EL VECTOR EXISTE
+        existe = st.vector_exists(nodo.id)
+        if not existe:
+            error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
         # OBTENGO EL TIPO DEL VECTOR
         try:
             tipo = st.get_vector_pos(acceso)[1]
         except KeyError:
-            error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+            error = Error("semántico", f'El índice del arreglo {nodo.id} está fuera de rango', nodo.linea, nodo.columna)
             errores.append(error)
             return error
         # VERIFICO SI EL TIPO DEL VALOR ES EL MISMO QUE EL DEL VECTOR
@@ -927,11 +940,11 @@ class Visitor_Output(Visitor):
                 st.update_vector_pos(acceso, valor)
                 return
             except KeyError:
-                error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+                error = Error("semántico", f'El índice del arreglo {nodo.id} está fuera de rango', nodo.linea, nodo.columna)
                 errores.append(error)
                 return error
         else:
-            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} a una variable de tipo {tipo}', nodo.linea, nodo.columna)
+            error = Error("semántico", f'Se intentó asignar un valor de tipo {nodo.valor.tipo} a un arreglo de tipo {tipo}', nodo.linea, nodo.columna)
             errores.append(error)
             return error
 
@@ -975,9 +988,14 @@ class Visitor_Output(Visitor):
     
     def visit_Sort(self, nodo: Nodo):
         try:
-            vector, dimensiones = st.get_vector(nodo.vector)
+            vector, dimensiones, tipoVec = st.get_vector(nodo.vector)
         except KeyError:
             error = Error("semántico", f'El vector {nodo.vector} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+        if tipoVec != Tipos.INT and tipoVec != Tipos.FLOAT:
+            error = Error("semántico", f'El vector {nodo.vector} debe ser de tipo entero o flotante para poder ordenarlo', nodo.linea, nodo.columna)
             errores.append(error)
             return error
         
@@ -1047,7 +1065,7 @@ class Visitor_Output(Visitor):
         for param in nodo.parametros:
             params.append({'id': str(param.id), 'tipo': str(param.tipo)})
         try:
-            st.add_function(nodo.id, params)
+            st.add_function(nodo.id, params, nodo.linea, nodo.columna)
         except Exception as e:
             error = Error("semántico", f'Error al añadir el procedimiento {nodo.id} a la tabla de símbolos: {str(e)}', nodo.linea, nodo.columna)
             errores.append(error)
@@ -1077,7 +1095,7 @@ class Visitor_Output(Visitor):
             errores.append(error)
             return error
 
-        # ASIGNO LOS PARÁMETROS DEL PROCEDIMIENTO
+        # VERIFICAR SI VIENEN PARAMETROS
         if len(procedimiento.parametros) == 0:
             if len(nodo.args) != 0:
                 error = Error("semántico", f'El procedimiento {nodo.identificador} no acepta parámetros', nodo.linea, nodo.columna)
@@ -1102,7 +1120,13 @@ class Visitor_Output(Visitor):
                     st.exit_scope()
                     return error
                 #SI LOS TIPOS COINCIDEN, AÑADO EL PARÁMETRO A LA TABLA DE SÍMBOLOS
-                st.add_variable(procedimiento.parametros[i].id, tipo_parametro, valor)
+                st.add_variable(procedimiento.parametros[i].id, tipo_parametro, valor, arg.linea, arg.columna)
+
+        #AÑADO UN CONTADOR DE EJECUCIÓN AL PROCEDIMIENTO
+        for proc in self.Arbol.getProcedimientos():
+            if proc.id == nodo.identificador:
+                proc.addEjecucion(nodo.linea)
+                break
 
         # EJECUTO LAS INSTRUCCIONES DEL PROCEDIMIENTO
         for instruccion in procedimiento.instrucciones:

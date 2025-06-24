@@ -92,7 +92,7 @@ def p_sentencia_print(t):
 def p_sentencia_declaracion_proc(t):
     '''sentencia : PROC IDENTIFICADOR PARENTESIS_IZQ params PARENTESIS_DER LLAVE_IZQ sentencias LLAVE_DER'''
     # SE CREA UN NODO PROC CON EL NOMBRE Y LAS INSTRUCCIONES
-    t[0] = Procedimiento(t[2], t[4], t[7], t.lineno(1), find_column(t, 1))  # Crea un nodo Procedimiento con el nombre, parámetros e instrucciones
+    t[0] = Procedimiento(t[2], t[4], t[7], t.lineno(1), find_column(t, 2))  # Crea un nodo Procedimiento con el nombre, parámetros e instrucciones
 
 def p_params(t):
     '''params : params COMA param'''

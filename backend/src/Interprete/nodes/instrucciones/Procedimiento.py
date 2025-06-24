@@ -6,3 +6,7 @@ class Procedimiento(Nodo):
         self.id = id
         self.parametros = parametros
         self.instrucciones = instrucciones
+        self.lineas_llamada = []
+
+    def addEjecucion(self, ejecucion):
+        self.lineas_llamada.append(ejecucion)

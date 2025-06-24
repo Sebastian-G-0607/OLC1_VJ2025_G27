@@ -14,3 +14,8 @@ export const getAST = async(input) =>{
     const response = await axios.post('/ast',{input}, { responseType: 'blob'});
     return response.data;
 }
+
+export const getMemoria = async(input) =>{
+    const response = await axios.post('/reporte/memoria',{input}, { responseType: 'text/html'});
+    return response.data;
+}

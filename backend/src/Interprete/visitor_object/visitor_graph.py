@@ -650,3 +650,78 @@ class VisitorGraph(Visitor):
         self.dot.append(codigo)
         self.counter += 1
         return raiz
+    
+    def visit_Vector(self, nodo: Nodo):
+        pass
+        # raiz = f'node{self.counter}'
+        # self.counter += 1
+
+        # lista = []
+        # cadena = "["
+        # for elemento in nodo.elementos:
+        #     valor = elemento.accept(self)
+        #     lista.append(valor)
+
+
+        # # Representación en string de la lista de elementos, soportando multidimensionalidad
+        # def elementos_to_str(elementos):
+        #     if isinstance(elementos, list):
+        #         return "[" + ", ".join(elementos_to_str(e.elementos) if hasattr(e, 'elementos') else str(e.valor) if hasattr(e, 'valor') else str(e) for e in elementos) + "]"
+        #     return str(elementos)
+        # elementos_str = elementos_to_str(nodo.elementos)
+        # self.dot.append(f'\t{raiz} [label="{elementos_str}"];')
+        # return raiz
+
+    def visit_DeclaracionVector(self, nodo: Nodo):
+        raiz = f'node{self.counter}'
+        self.counter += 1
+
+        dims = str(nodo.dimensiones)
+
+        self.dot.append(f'\t{raiz} [label="Vector {nodo.tipo}"];')
+        self.dot.append(f'\t{raiz}ID [label="{nodo.identificador}"];')
+        self.dot.append(f'\t{raiz}Dims [label="{dims}"];')
+        self.dot.append(f'\t{raiz}Vec [label="[   ]"];')
+        self.dot.append(f'\t{raiz} -> {raiz}ID;')
+        self.dot.append(f'\t{raiz} -> {raiz}Dims;')
+        self.dot.append(f'\t{raiz} -> {raiz}Vec;')
+
+        return raiz
+
+    def visit_AccesoVector(self, nodo: Nodo):
+        #DEFINO EL NODO
+        raiz = f'node{self.counter}'
+        self.counter += 1
+        codigo = f'\t{raiz} [label="{nodo.id}"];'
+        self.dot.append(codigo)
+
+        for indice in nodo.indices:
+            indiceValor = indice.accept(self)
+            self.dot.append(f'\t{raiz} -> {indiceValor};')
+
+        #RETORNO EL NOMBRE DEL NODO
+        return raiz
+
+    def visit_AsignacionVector(self, nodo: Nodo):
+        pass
+
+    def visit_Seno(self, nodo: Nodo):
+        pass
+
+    def visit_Coseno(self, nodo: Nodo):
+        pass
+
+    def visit_Inversion(self, nodo: Nodo):
+        pass
+
+    def visit_Sort(self, nodo: Nodo):
+        pass
+
+    def visit_Shuffle(self, nodo: Nodo):
+        pass
+    
+    def visit_Procedimiento(self, nodo: Nodo):
+        pass
+
+    def visit_Execute(self, nodo: Nodo):
+        pass
