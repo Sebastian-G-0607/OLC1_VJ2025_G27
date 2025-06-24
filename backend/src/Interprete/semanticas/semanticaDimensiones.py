@@ -48,7 +48,7 @@ def validar_tipos(name, valores, tipo, dimensiones, linea = None, columna = None
                 return res
     return True
 
-def save_row_major(valores, dimensiones, id, tipo, linea = None, columna = None, nivel=0, indices=None):
+def save_row_major(valores, dimensiones, id, tipo, ordenamiento, linea = None, columna = None, nivel=0, indices=None):
     if indices is None:
         indices = []
     # Verificar que la longitud de valores coincida con la dimensión actual
@@ -57,10 +57,10 @@ def save_row_major(valores, dimensiones, id, tipo, linea = None, columna = None,
     if nivel == len(dimensiones) - 1:
         for i in range(dimensiones[nivel]):
             nombre_variable = f"{id}" + "".join(f"[{idx}]" for idx in indices + [i])
-            st.add_vector(nombre_variable, tipo, valores[i], len(dimensiones) ,linea, columna)
+            st.add_vector(nombre_variable, tipo, valores[i], len(dimensiones), ordenamiento, linea, columna)
     else:
         for i in range(dimensiones[nivel]):
-            res = save_row_major(valores[i], dimensiones, id, tipo, linea, columna, nivel + 1, indices + [i])
+            res = save_row_major(valores[i], dimensiones, id, tipo, ordenamiento, linea, columna, nivel + 1, indices + [i])
             if isinstance(res, Error):
                 return res
 # add_vector(self, name, data_type, value=None, dimensions=None, line=None, column=None):

@@ -99,19 +99,19 @@ t_CORCHETE_DER = r'\]'
 
 #PALABRAS RESERVADAS DEL LENGUAJE
 def t_PROC(t):
-    r'[Pp][Rr][Oo][Cc]'
+    r'[Pp][Rr][Oo][Cc]\b'
     t.value = str(t.value)
     t.value = t.value.lower()
     return t
 
 def t_EXEC(t):
-    r'[Ee][Xx][Ee][Cc]'
+    r'[Ee][Xx][Ee][Cc]\b'
     t.value = str(t.value)
     t.value = t.value.lower()
     return t
 
 def t_VECTOR(t):
-    r'[Vv][Ee][Cc][Tt][Oo][Rr]'
+    r'[Vv][Ee][Cc][Tt][Oo][Rr]\b'
     t.value = str(t.value)
     t.value = t.value.lower()
     return t

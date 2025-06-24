@@ -62,9 +62,6 @@ def generar_reporteTS():
     </style>
     """
 
-    for simbolo in st.symbols:
-        print(f"Procesando símbolo")
-
     with open(st_html_path, 'w') as file:
         file.write('<html><head><title>Reporte de Tabla de Símbolos</title>')
         file.write(css)

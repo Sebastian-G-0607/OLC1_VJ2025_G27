@@ -206,15 +206,15 @@ def p_vector_valor_expresiones(t):
 
 def p_vector_sin_valor(t):
     '''declaracion_vector_sin_valor : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER PUNTO_Y_COMA'''
-    t[0] = DeclaracionVector(t[3], t[5], t[7], None, t.lineno(1), find_column(t, 1))
+    t[0] = DeclaracionVector(t[3], t[5], t[7], None, t.lineno(1), find_column(t, 6))
 
 def p_vector_sort(t):
     '''declaracion_vector_sort : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER IGUAL sort PUNTO_Y_COMA'''
-    t[0] = DeclaracionVector(t[3], t[5], t[7], t[10], t.lineno(1), find_column(t, 1))
+    t[0] = DeclaracionVector(t[3], t[5], t[7], t[10], t.lineno(1), find_column(t, 6))
 
 def p_vector_shuffle(t):
     '''declaracion_vector_shuffle : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER IGUAL shuffle PUNTO_Y_COMA'''
-    t[0] = DeclaracionVector(t[3], t[5], t[7], t[10], t.lineno(1), find_column(t, 1))
+    t[0] = DeclaracionVector(t[3], t[5], t[7], t[10], t.lineno(1), find_column(t, 6))
 
 def p_dimensiones(t):
     '''dimensiones : dimensiones COMA dimension'''

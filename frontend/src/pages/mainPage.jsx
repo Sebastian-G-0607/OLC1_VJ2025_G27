@@ -1,7 +1,7 @@
 import './mainPage.css';
 import { useRef, useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { getParse, getAST, getMemoria } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
+import { getParse, getAST, getMemoria, getAdvertencia } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
 
 const MainPage = () => {
     const fileInputRef = useRef(null);
@@ -104,6 +104,10 @@ const MainPage = () => {
         window.open('http://localhost:4000/reporte/simbolos', '_blank');
     };
 
+    const handleGenerarReporteVectores = () => {
+        window.open('http://localhost:4000/reporte/vectores', '_blank');
+    };
+
     const handleGenerarReporteMemoria = async () => {
         try {
             const codigo = textareaRef.current ? textareaRef.current.value : '';
@@ -129,6 +133,36 @@ const MainPage = () => {
                 icon: 'error',
                 title: 'Error',
                 text: 'Ocurrió un error al generar el reporte de memoria. Por favor, revisa tu código y vuelve a intentarlo.',
+                footer: 'Consulta el reporte de errores para más detalles',
+            });
+        }
+    };
+
+    const handleGenerarReporteAdvertencias = async () => {
+        try {
+            const codigo = textareaRef.current ? textareaRef.current.value : '';
+            const data = { code: codigo };
+            const html = await getAdvertencia(data);
+
+            // Abrir una nueva ventana y escribir el HTML recibido
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
+                newWindow.document.open();
+                newWindow.document.write(html);
+                newWindow.document.close();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo abrir una nueva ventana para mostrar el reporte de advertencias.',
+                });
+            }
+        } catch (error) {
+            console.error('Error al generar el reporte de advertencias:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al generar el reporte de advertencias. Por favor, revisa tu código y vuelve a intentarlo.',
                 footer: 'Consulta el reporte de errores para más detalles',
             });
         }
@@ -177,9 +211,9 @@ const MainPage = () => {
                         <button className='editor-buttons' onClick={handleGenerarReporteErrores}>Reporte de Errores</button>
                         <button className='editor-buttons' onClick={handleGenerarReporteTS}>Tabla de Símbolos</button>
                         <button className='editor-buttons' onClick={handleASTClick} >AST</button>
-                        <button className='editor-buttons' onClick={handleASTClick} >Vectores</button>
+                        <button className='editor-buttons' onClick={handleGenerarReporteVectores} >Vectores</button>
                         <button className='editor-buttons' onClick={handleGenerarReporteMemoria} >Memoria</button>
-                        <button className='editor-buttons' onClick={handleASTClick} >Advertencias</button>
+                        <button className='editor-buttons' onClick={handleGenerarReporteAdvertencias} >Advertencias</button>
                     </div>
 
                     <textarea id="resultado" readOnly ref={resultadoRef} spellCheck={false}></textarea>

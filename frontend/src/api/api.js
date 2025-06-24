@@ -19,3 +19,13 @@ export const getMemoria = async(input) =>{
     const response = await axios.post('/reporte/memoria',{input}, { responseType: 'text/html'});
     return response.data;
 }
+
+export const getVectores = async() => {
+    const response = await axios.get('/reporte/vectores');
+    return response.data;
+}
+
+export const getAdvertencia = async(input) => {
+    const response = await axios.post('/reporte/advertencias', { input }, { responseType: 'text/html' });
+    return response.data;
+}

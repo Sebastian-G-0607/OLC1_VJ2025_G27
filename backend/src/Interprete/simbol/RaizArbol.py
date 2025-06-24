@@ -4,6 +4,7 @@ class Arbol:
         self.__consola = ""
         self.__errores = []
         self.__procedimientos = []
+        self.__advertencias = []
 
     def getInstrucciones(self):
         return self.__instrucciones
@@ -26,6 +27,12 @@ class Arbol:
     def addProcedimiento(self, procedimiento):
         self.__procedimientos.append(procedimiento)
 
+    def getAdvertencias(self):
+        return self.__advertencias
+    
+    def addAdvertencia(self, advertencia):
+        self.__advertencias.append(advertencia)
+
     def findProcedimiento(self, id):
         for procedimiento in self.__procedimientos:
             if procedimiento.id == id:
@@ -40,3 +47,10 @@ class Arbol:
 
     def AddErrores(self, errores):
         self.__errores.append(errores)
+
+class Advertencia:
+    def __init__(self, procedimiento, mensaje, linea, columna):
+        self.procedimiento = procedimiento
+        self.mensaje = mensaje
+        self.linea = linea
+        self.columna = columna

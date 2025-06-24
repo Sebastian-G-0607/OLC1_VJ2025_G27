@@ -9,3 +9,14 @@ class Suma(Nodo):
 
     def __repr__(self):
         return f"Suma({self.izquierda!r}, {self.derecha!r})"
+    
+    '''
+    for instruccion in nodo.instrucciones:
+            if isinstance(instruccion, AccesoVariable):
+                if instruccion.id in parametrosUtilizados:
+                    # MARCO EL PARÁMETRO COMO UTILIZADO
+                    for param in parametrosUtilizados:
+                        if param['id'] == instruccion.id:
+                            param['usado'] = True
+                            break
+    '''

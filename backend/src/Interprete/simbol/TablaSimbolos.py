@@ -62,7 +62,7 @@ class SymbolTable(metaclass=SingletonMeta):
         self.symbols.append(sym)
         return sym
 
-    def add_vector(self, name, data_type, value=None, dimensions=None, line=None, column=None):
+    def add_vector(self, name, data_type, value=None, dimensions=None, ordenamiento=None, line=None, column=None):
         """Agregar o reemplazar un vector en el scope actual."""
         # Elimina el vector anterior si ya existe en el mismo scope
         self.symbols = [
@@ -72,7 +72,7 @@ class SymbolTable(metaclass=SingletonMeta):
 
         # Agrega el nuevo vector como símbolo
         sym = Vector(name=name, entity_type='vector', data_type=data_type,
-            value=value, scope=self.current_scope, dimensions=dimensions,
+            value=value, scope=self.current_scope, dimensions=dimensions, ordenamiento=ordenamiento,
             line=line, column=column)
         self.symbols.append(sym)
         return sym

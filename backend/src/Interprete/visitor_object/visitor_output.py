@@ -1,4 +1,5 @@
 import math
+from backend.src.Interprete.nodes.expresiones.AccesoVariable import AccesoVariable
 from backend.src.Interprete.nodes.expresiones.Shuffle import Shuffle
 from backend.src.Interprete.nodes.expresiones.Sort import Sort
 from backend.src.Interprete.nodes.instrucciones.Break import Break
@@ -28,11 +29,12 @@ from backend.src.Interprete.semanticas.semanticaXor import validar_Xor
 from backend.src.Interprete.semanticas.semanticaUmenos import validar_Umenos
 from backend.src.Interprete.visitor_object.visitorBase import Visitor
 from backend.src.Interprete.nodes.Nodo import Nodo
-from backend.src.Interprete.simbol.RaizArbol import Arbol
+from backend.src.Interprete.simbol.RaizArbol import Arbol, Advertencia
 from backend.src.Interprete.errors.Error import Error
 from backend.src.Interprete.simbol.InstanciaTabla import st
 from backend.src.Interprete.simbol.ListaErrores import errores
 from backend.src.Interprete.semanticas.semanticaDimensiones import recorrer_dimensiones, save_row_major, validar_tipos
+from backend.src.Interprete.visitor_object.visitor_advertencia import Visitor_Advertencia
 import re
 import numpy as np
 
@@ -807,7 +809,7 @@ class Visitor_Output(Visitor):
                 return validacion_semantica
 
             # GUARDAR EL VECTOR EN LA TABLA DE SÍMBOLOS
-            save_row_major(lista, nodo.dimensiones, nodo.identificador, nodo.tipo, nodo.linea, nodo.columna)
+            save_row_major(lista, nodo.dimensiones, nodo.identificador, nodo.tipo, 'Row Major', nodo.linea, nodo.columna)
 
             return lista
         
@@ -835,15 +837,12 @@ class Visitor_Output(Visitor):
                 return validacion_semantica
             
             #GUARDAR EL VECTOR EN LA TABLA DE SÍMBOLOS
-            save_row_major(vector_sort, nodo.dimensiones, nodo.identificador, nodo.tipo, nodo.linea, nodo.columna)
+            save_row_major(vector_sort, nodo.dimensiones, nodo.identificador, nodo.tipo,'Row Major',nodo.linea, nodo.columna)
             return vector_sort
 
+        # SI VIENE UNA FUNCIÓN SHUFFLE
         elif isinstance(nodo.valores, Shuffle):
             vector_shuffle = nodo.valores.accept(self)
-            print("VECTOR SHUFFLE")
-            print(vector_shuffle)
-            print("SU TIPO")
-            print(type(vector_shuffle))
             if isinstance(vector_shuffle, Error):
                 errores.append(vector_shuffle)
                 return vector_shuffle
@@ -861,7 +860,7 @@ class Visitor_Output(Visitor):
                 return validacion_semantica
             
             #GUARDAR EL VECTOR EN LA TABLA DE SÍMBOLOS
-            save_row_major(vector_shuffle, nodo.dimensiones, nodo.identificador, nodo.tipo, nodo.linea, nodo.columna)
+            save_row_major(vector_shuffle, nodo.dimensiones, nodo.identificador, nodo.tipo,'Column Major' ,nodo.linea, nodo.columna)
             return vector_shuffle
         
     
@@ -1070,7 +1069,29 @@ class Visitor_Output(Visitor):
             error = Error("semántico", f'Error al añadir el procedimiento {nodo.id} a la tabla de símbolos: {str(e)}', nodo.linea, nodo.columna)
             errores.append(error)
             return error
-        
+
+        # INICIALIZO UNA LISTA PARA LOS PARÁMETROS DEL PROCEDIMIENTO
+        parametrosUtilizados = []
+        for param in nodo.parametros:
+            # AÑADO LOS PARÁMETROS DEL PROCEDIMIENTO A LA TABLA DE SÍMBOLOS
+            parametrosUtilizados.append({'id': str(param.id), 'usado': False})
+
+        # VALIDACIÓN PARA EL REPORTE DE ADVERTENCIAS:
+        for parametro in parametrosUtilizados:
+            for instruccion in nodo.instrucciones:
+                visitor_a = Visitor_Advertencia(self.Arbol, parametro['id'])
+                resultado = instruccion.accept(visitor_a)
+                if resultado is False or None:
+                    continue
+                parametro['usado'] = resultado
+                break
+
+        # VERIFICO SI ALGÚN PARÁMETRO NO FUE UTILIZADO
+        for param in parametrosUtilizados:
+            if not param['usado']:
+                advertencia = Advertencia(nodo.id, f'El parámetro {param["id"]} no fue utilizado', nodo.linea, nodo.columna)
+                self.Arbol.addAdvertencia(advertencia)
+
         # AÑADO EL PROCEDIMIENTO AL AST
         self.Arbol.addProcedimiento(nodo)
         return
@@ -1127,6 +1148,13 @@ class Visitor_Output(Visitor):
             if proc.id == nodo.identificador:
                 proc.addEjecucion(nodo.linea)
                 break
+
+        # for arg in nodo.args:
+
+        # # VALIDACIÓN PARA EL REPORTE DE ADVERTENCIAS:
+        # for instruccion in procedimiento.instrucciones:
+        #     if isinstance(instruccion, AccesoVariable):
+                
 
         # EJECUTO LAS INSTRUCCIONES DEL PROCEDIMIENTO
         for instruccion in procedimiento.instrucciones:
