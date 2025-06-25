@@ -20,9 +20,10 @@
     1. [Componentes y funcionalidades](#componentes-y-funcionalidades)  
     2. [Comunicación con el Backend](#comunicación-con-el-backend)  
 4. [Backend](#backend)   
-    1. [Explicación de los analizadores (léxico y sintáctico)](#explicación-de-los-analizadores-léxico-y-sintáctico)  
-    2. [Construcción del AST](#construcción-del-ast)  
-    3. [Generación de reportes](#generación-de-reportes)  
+    1. [Explicación de los analizadores (léxico y sintáctico)](#explicación-de-los-analizadores-léxico-y-sintáctico) 
+    2. [Gramatica BNF](#gramatica-bnf) 
+    3. [Construcción del AST](#construcción-del-ast)  
+    4. [Generación de reportes](#generación-de-reportes)  
 5. [Librerías y Dependencias](#librerías-y-dependencias)  
 
 ---
@@ -413,6 +414,205 @@ def p_error(p):
         print("Syntax error at EOF")
 ```
 ---
+## Gramatica BNF
+🔷 1. PROGRAMA Y SENTENCIAS
+```HTML
+    <sentencia> ::= "PRINT" "(" <expresion> ")" ";"
+             | <declaracion>
+             | <asignacion>  
+             | <incremento> 
+             | <decremento>  
+             | <asignacion_vector> 
+             | <sentencia_if> 
+             | "BREAK" ";"
+             | "CONTINUE" ";"
+             | <sentencia_while> 
+             | <sentencia_for>
+             | <sentencia_do_while>  
+             | <declaracion_vector>  
+             | <switch>
+             | <proc> 
+             | <exec> 
+```
+
+🔷2. DECLARACIONES, ASIGNACION, INCREMENTO Y DECREMENTO
+
+```HTML
+    <declaracion> ::= <declaracion_valor>
+               | <declaracion_sin_valor>
+
+        <declaracion_valor> ::= <tipo> IDENTIFICADOR "=" <expresion> ";"
+
+        <declaracion_sin_valor> ::= <tipo> IDENTIFICADOR ";"
+
+    <asignacion> ::= IDENTIFICADOR "=" <expresion> ";"
+
+    <incremento> ::= IDENTIFICADOR "++" ";"
+
+    <decremento> ::= IDENTIFICADOR "--" ";"
+```
+- 🖇️ 2.1 . TIPOS
+```HTML
+        <tipo> ::= "int"
+            | "float"
+            | "bool"
+            | "char"
+            | "str"
+```
+
+-  🖇️2.2 . EXPRESIONES 
+```HTML
+        <expresion> ::= <expresion> "+" <expresion>
+                | <expresion> "-" <expresion>
+                | <expresion> "*" <expresion>
+                | <expresion> "/" <expresion>
+                | <expresion> "%" <expresion>
+                | <expresion> "^" <expresion>
+                | "-" <expresion>
+                | "(" <expresion> ")"
+                | <relacional> 
+                | <logica>  
+                | <acceso_vector> 
+                | IDENTIFICADOR
+                | ENTERO
+                | FLOTANTE
+                | "TRUE"
+                | "FALSE"
+                | CADENA
+                | CARACTER
+                | <funcion_seno>
+                | <funcion_coseno> 
+                | <funcion_inversion>
+
+        <expresiones> ::= <expresiones> "," <expresion>
+                | <expresion>
+```
+
+
+- ⛓️‍💥 2.2.1.  RELACIONALES Y LÓGICAS
+
+```HTML
+            <relacional> ::= <expresion> "==" <expresion>
+                    | <expresion> "!=" <expresion>
+                    | <expresion> ">" <expresion>
+                    | <expresion> ">=" <expresion>
+                    | <expresion> "<" <expresion>
+                    | <expresion> "<=" <expresion>
+
+            <logica> ::= "!" <expresion>
+                | <expresion> "AND" <expresion>
+                | <expresion> "OR" <expresion>
+                | <expresion> "XOR" <expresion>
+                | "TRUE"
+                | "FALSE"
+                | IDENTIFICADOR
+```
+- ⛓️‍💥 2.2.2 FUNCIONES MATEMÁTICAS
+```HTML
+            <funcion_seno> ::= "SENO" "(" <expresion> ")"
+            <funcion_coseno> ::= "COSENO" "(" <expresion> ")"
+            <funcion_inversion> ::= "INVERSION" "(" <expresion> ")"
+```
+
+🔷 3. ASIGNACION Y DECLARACION DE VECTORES
+```HTML
+        <declaracion_vector> ::= <vector_valor>
+                            | <vector_sin_valor>
+                            | <vector_sort>
+                            | <vector_shuffle>
+
+        <vector_valor> ::= "VECTOR" "[" <tipo> "]" IDENTIFICADOR "(" <dimensiones> ")" "=" "[" <vectores> "]" ";"
+                            | "VECTOR" "[" <tipo> "]" IDENTIFICADOR "(" <dimensiones> ")" "=" "[" <expresiones> "]" ";"
+
+        <vector_sin_valor> ::= "VECTOR" "[" <tipo> "]" IDENTIFICADOR "(" <dimensiones> ")" ";"
+
+        <vector_sort> ::= "VECTOR" "[" <tipo> "]" IDENTIFICADOR "(" <dimensiones> ")" "=" <sort> ";"
+
+        <vector_shuffle> ::= "VECTOR" "[" <tipo> "]" IDENTIFICADOR "(" <dimensiones> ")" "=" <shuffle> ";"
+
+        <dimensiones> ::= <dimensiones> "," <dimension>
+                        | <dimension>
+
+        <dimension> ::= ENTERO
+
+        <vectores> ::= <vectores> "," <vector>
+                    | <vector>
+
+        <vector> ::= "[" <expresiones> "]"
+                | "[" <vectores> "]"
+
+        <asignacion_vector> ::= IDENTIFICADOR <indices> "=" <expresion> ";"
+
+        <indices> ::= <indices> <indice>
+                | <indice>
+
+        <indice> ::= "[" <expresion> "]"
+
+        <acceso_vector> ::= IDENTIFICADOR <indices>
+
+        <sort> ::= "SORT" "(" IDENTIFICADOR ")"
+        <shuffle> ::= "SHUFFLE" "(" IDENTIFICADOR ")"
+```
+🔷 4. SENTENCIA IF
+```HTML
+    <sentencia_if> ::= "IF" "(" <condicion> ")" "{" <sentencias> "}"
+                    | "IF" "(" <condicion> ")" "{" <sentencias> "}" "ELSE" "{" <sentencias> "}"
+                    | "IF" "(" <condicion> ")" "{" <sentencias> "}" "ELSE" <sentencia_if>
+
+    <condicion> ::= <relacional>
+                | <logica>
+```
+🔷 5. BUCLES
+```HTML
+    <sentencia_while> ::= "WHILE" "(" <condicion> ")" "{" <sentencias> "}"
+
+    <sentencia_do_while> ::= "DO" "{" <sentencias> "}" "WHILE" "(" <condicion> ")"
+
+    <sentencia_for> ::= "FOR" "(" <inicio_for> ";" <condicion> ";" <actualizacion> ")" "{" <sentencias> "}"
+
+    <inicio_for> ::= <asignacion>
+                | <declaracion_valor>
+
+    <actualizacion> ::= IDENTIFICADOR "++"
+                    | IDENTIFICADOR "--"
+                    | IDENTIFICADOR "=" <expresion>
+```
+🔷 6. SWTICH
+```HTML
+    <switch> ::= "SWITCH" "(" <expresion> ")" "{" <cases> "}"
+
+    <cases> ::= <cases> <case>
+            | <case>
+
+    <case> ::= "CASE" <expresion> ":" <sentencias> "BREAK" ";"
+            | "DEFAULT" ":" <sentencias> "BREAK" ";"
+```
+🔷 7. PROCEDIMEINTO Y LLAMDAS
+```HTML
+    <proc> ::= "PROC" IDENTIFICADOR "(" <params> ")" "{" <sentencias> "}"
+
+    <params> ::= <params> "," <param>
+            | <param>
+            | ε
+
+    <param> ::= <tipo> ":" IDENTIFICADOR
+
+    <exec> ::= "EXEC" IDENTIFICADOR "(" <args> ")" ";"
+
+    <args> ::= <args> "," <arg>
+            | <arg>
+            | ε
+
+    <arg> ::= IDENTIFICADOR
+        | ENTERO
+        | FLOTANTE
+        | "TRUE"
+        | "FALSE"
+        | CADENA
+        | CARACTER
+        | <acceso_vector>
+```
+
 ## Construcción del AST 
 
 El **Árbol de Sintaxis Abstracta (AST)** es una representación estructurada del programa en forma de árbol.
