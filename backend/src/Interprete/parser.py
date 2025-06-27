@@ -28,10 +28,12 @@ from backend.src.Interprete.nodes.instrucciones.Break import Break
 from backend.src.Interprete.nodes.instrucciones.Case import Case
 from backend.src.Interprete.nodes.instrucciones.Continue import Continue
 from backend.src.Interprete.nodes.instrucciones.Decremento import Decremento
+from backend.src.Interprete.nodes.instrucciones.DecrementoVector import DecrementoVector
 from backend.src.Interprete.nodes.instrucciones.DoWhile import DoWhile
 from backend.src.Interprete.nodes.instrucciones.Execute import Execute
 from backend.src.Interprete.nodes.instrucciones.For import For
 from backend.src.Interprete.nodes.instrucciones.Incremento import Incremento
+from backend.src.Interprete.nodes.instrucciones.IncrementoVector import IncrementoVector
 from backend.src.Interprete.nodes.instrucciones.ParametroDefinicion import ParametroDefinicion
 from backend.src.Interprete.nodes.instrucciones.Procedimiento import Procedimiento
 from backend.src.Interprete.nodes.instrucciones.Switch import Switch
@@ -206,7 +208,7 @@ def p_vector_valor_expresiones(t):
 
 def p_vector_sin_valor(t):
     '''declaracion_vector_sin_valor : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER PUNTO_Y_COMA'''
-    t[0] = DeclaracionVector(t[3], t[5], t[7], None, t.lineno(1), find_column(t, 6))
+    t[0] = DeclaracionVector(t[3], t[5], t[7], [], t.lineno(1), find_column(t, 6))
 
 def p_vector_sort(t):
     '''declaracion_vector_sort : VECTOR CORCHETE_IZQ tipo CORCHETE_DER IDENTIFICADOR PARENTESIS_IZQ dimensiones PARENTESIS_DER IGUAL sort PUNTO_Y_COMA'''
@@ -331,6 +333,17 @@ def p_actualizacion_decremento(t):
     # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION DE DECREMENTO
     t[0] = Decremento(t[1], t.lineno(2), find_column(t, 2))  # Crea un nodo Decremento con el identificador
 
+'''------------------ ACTUALIZACIONES REVISAR-----------------'''
+def p_actualizacion_incremento_vector(t):
+    'actualizacion : IDENTIFICADOR indices INCREMENTO'
+    # SE CREA UN NODO ASIGNACION VECTOR CON EL IDENTIFICADOR Y LA EXPRESION DE INCREMENTO
+    t[0] = IncrementoVector(t[1], t[2], t.lineno(2), find_column(t, 2))  # Crea un nodo Incremento con el acceso al vector
+
+def p_actualizacion_decremento_vector(t):
+    'actualizacion : IDENTIFICADOR indices DECREMENTO'
+    # SE CREA UN NODO ASIGNACION VECTOR CON EL IDENTIFICADOR Y LA EXPRESION DE DECREMENTO
+    t[0] = DecrementoVector(t[1], t[2], t.lineno(2), find_column(t, 2))  # Crea un nodo Decremento con el acceso al vector
+
 def p_actualizacion_asignacion(t):
     '''actualizacion : IDENTIFICADOR IGUAL expresion'''
     # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION
@@ -345,6 +358,16 @@ def p_sentencia_decremento(t):
     '''sentencia : IDENTIFICADOR DECREMENTO PUNTO_Y_COMA'''
     # SE CREA UN NODO ASIGNACION CON EL IDENTIFICADOR Y LA EXPRESION DE DECREMENTO
     t[0] = Decremento(t[1], t.lineno(2), find_column(t, 2))
+
+def p_sentencia_incremento_vector(t):
+    '''sentencia : IDENTIFICADOR indices INCREMENTO PUNTO_Y_COMA'''
+    # SE CREA UN NODO ASIGNACION VECTOR CON EL ACCESO Y LA EXPRESION DE INCREMENTO
+    t[0] = IncrementoVector(t[1], t[2], t.lineno(2), find_column(t, 2))
+
+def p_sentencia_decremento_vector(t):
+    '''sentencia : IDENTIFICADOR indices DECREMENTO PUNTO_Y_COMA'''
+    # SE CREA UN NODO ASIGNACION VECTOR CON EL ACCESO Y LA EXPRESION DE DECREMENTO
+    t[0] = DecrementoVector(t[1], t[2], t.lineno(2), find_column(t, 2))
 
 def p_asignacion(t):
     '''asignacion : IDENTIFICADOR IGUAL expresion PUNTO_Y_COMA'''

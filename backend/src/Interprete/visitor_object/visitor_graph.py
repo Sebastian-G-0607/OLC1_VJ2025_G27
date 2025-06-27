@@ -725,3 +725,9 @@ class VisitorGraph(Visitor):
 
     def visit_Execute(self, nodo: Nodo):
         pass
+
+    def visit_IncrementoVector(self, nodo: Nodo):
+        pass
+
+    def visit_DecrementoVector(self, nodo: Nodo):
+        pass

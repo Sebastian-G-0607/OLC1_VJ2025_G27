@@ -17,6 +17,26 @@ def recorrer_dimensiones(valores, dimensiones, linea = None, columna = None, nam
             if isinstance(res, Error):
                 return res
             
+def rellenar_vector(dimensiones, tipo, nivel=0):
+    def valor_por_defecto(tipo):
+        if tipo == Tipos.INT:
+            return 0
+        elif tipo == Tipos.FLOAT:
+            return 0.0
+        elif tipo == Tipos.CHAR:
+            return '\u0000'  # Caracter nulo
+        elif tipo == Tipos.BOOL:
+            return True
+        elif tipo == Tipos.STRING:
+            return ""
+        else:
+            return None
+
+    if nivel == len(dimensiones) - 1:
+        return [valor_por_defecto(tipo) for _ in range(dimensiones[nivel])]
+    else:
+        return [rellenar_vector(dimensiones, tipo, nivel + 1) for _ in range(dimensiones[nivel])]
+            
 def validar_tipos(name, valores, tipo, dimensiones, linea = None, columna = None, nivel=0, indices=None):
     if indices is None:
         indices = []
@@ -63,4 +83,3 @@ def save_row_major(valores, dimensiones, id, tipo, ordenamiento, linea = None, c
             res = save_row_major(valores[i], dimensiones, id, tipo, ordenamiento, linea, columna, nivel + 1, indices + [i])
             if isinstance(res, Error):
                 return res
-# add_vector(self, name, data_type, value=None, dimensions=None, line=None, column=None):

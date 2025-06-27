@@ -1,5 +1,5 @@
 import './mainPage.css';
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 import Swal from 'sweetalert2';
 import { getParse, getAST, getMemoria, getAdvertencia } from '../api/api.js'; // Asegúrate de que la ruta sea correcta
 
@@ -7,7 +7,6 @@ const MainPage = () => {
     const fileInputRef = useRef(null);
     const textareaRef = useRef(null);
     const resultadoRef = useRef(null); // Nuevo ref para el textarea de salida
-    const [svgUrl, setSvgUrl] = useState(null);
 
     const handleTabInTextarea = (e) => {
         if (e.key === 'Tab') {

@@ -35,6 +35,7 @@ from backend.src.Interprete.simbol.InstanciaTabla import st
 from backend.src.Interprete.simbol.ListaErrores import errores
 from backend.src.Interprete.semanticas.semanticaDimensiones import recorrer_dimensiones, save_row_major, validar_tipos
 from backend.src.Interprete.visitor_object.visitor_advertencia import Visitor_Advertencia
+from backend.src.Interprete.semanticas.semanticaDimensiones import rellenar_vector
 import re
 import numpy as np
 
@@ -780,7 +781,19 @@ class Visitor_Output(Visitor):
         #SI VIENE UN VECTOR CON VALORES
         if isinstance(nodo.valores, list):
             if nodo.valores is None:
-            # Si no hay valores, se crea un vector vacío
+                return
+            
+            if nodo.dimensiones[0] <= 0:
+                error = Error("semántico", f'El número de dimensiones del vector {nodo.identificador} debe ser mayor a 0', nodo.linea, nodo.columna)
+                errores.append(error)
+                return error
+            
+            # SI VIENE VACÍO SE RELLENA CON VALORES POR DEFECTO
+            if len(nodo.valores) == 0:
+                resultado = rellenar_vector(nodo.dimensiones, nodo.tipo)
+                nodo.valores = resultado
+                # GUARDAR EL VECTOR EN LA TABLA DE SÍMBOLOS
+                save_row_major(nodo.valores, nodo.dimensiones, nodo.identificador, nodo.tipo, 'Row Major', nodo.linea, nodo.columna)
                 return
             
             # PRIMERO VALIDO QUE EL NÚMERO DE ELEMENTOS SEA EL CORRECTO
@@ -789,6 +802,7 @@ class Visitor_Output(Visitor):
                 errores.append(error)
                 return error
 
+            # SI LAS DIMENSIONES COINCIDEN, SE ACEPTAN LOS VALORES
             for valor in nodo.valores:
                 valorAceptado = valor.accept(self)
                 if isinstance(valorAceptado, Error):
@@ -899,6 +913,74 @@ class Visitor_Output(Visitor):
         
         nativo = Nativo(tipo, simbolo)
         return nativo.accept(self)
+    
+    def visit_IncrementoVector(self, nodo: Nodo):
+        pos = ""
+        for indice in nodo.indices:
+            resultado = indice.accept(self)
+            if isinstance(resultado, Error):
+                errores.append(resultado)
+                return resultado
+            if not isinstance(resultado, int):
+                if resultado.tipo not in [Tipos.INT, Tipos.FLOAT]:
+                    error = Error("semántico", f'El índice del vector {nodo.id} debe ser de tipo entero o flotante', nodo.linea, nodo.columna)
+                    errores.append(error)
+                    return error
+            pos += f"[{resultado}]"
+
+        # VERIFICO SI EL VECTOR EXISTE
+        existe = st.vector_exists(nodo.id)
+        if not existe:
+            error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+        acceso = nodo.id + pos
+
+        # OBTENGO EL SIMBOLO DEL VECTOR
+        try:
+            simbolo, tipo = st.get_vector_pos(acceso)
+            nodo.tipo = tipo  # Actualizar el tipo del nodo
+        except KeyError:
+            error = Error("semántico", f'El índice del arreglo {nodo.id} está fuera de rango', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        st.update_vector_pos(acceso, simbolo + 1)
+        return
+    
+    def visit_DecrementoVector(self, nodo: Nodo):
+        pos = ""
+        for indice in nodo.indices:
+            resultado = indice.accept(self)
+            if isinstance(resultado, Error):
+                errores.append(resultado)
+                return resultado
+            if not isinstance(resultado, int):
+                if resultado.tipo not in [Tipos.INT, Tipos.FLOAT]:
+                    error = Error("semántico", f'El índice del vector {nodo.id} debe ser de tipo entero o flotante', nodo.linea, nodo.columna)
+                    errores.append(error)
+                    return error
+            pos += f"[{resultado}]"
+
+        # VERIFICO SI EL VECTOR EXISTE
+        existe = st.vector_exists(nodo.id)
+        if not existe:
+            error = Error("semántico", f'El vector {nodo.id} no está declarado', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+
+        acceso = nodo.id + pos
+
+        # OBTENGO EL SIMBOLO DEL VECTOR
+        try:
+            simbolo, tipo = st.get_vector_pos(acceso)
+            nodo.tipo = tipo  # Actualizar el tipo del nodo
+        except KeyError:
+            error = Error("semántico", f'El índice del arreglo {nodo.id} está fuera de rango', nodo.linea, nodo.columna)
+            errores.append(error)
+            return error
+        st.update_vector_pos(acceso, simbolo - 1)
+        return
     
     def visit_AsignacionVector(self, nodo: Nodo):
         pos = ""
@@ -1058,6 +1140,13 @@ class Visitor_Output(Visitor):
                     error = Error("semántico", f'No se puede llamar al procedimiento "{nodo.id}" desde su propia definición', instruccion.linea, instruccion.columna)
                     errores.append(error)
                     return error 
+
+        # COMPRUEBO SI ALGUN ID DENTRO DE LOS PARAMETROS SE REPITE
+        for param in nodo.parametros:
+            if [p.id for p in nodo.parametros].count(param.id) > 1:
+                error = Error("semántico", f'El parámetro {param.id} aparece más de una vez', nodo.linea, nodo.columna)
+                errores.append(error)
+                return error
 
         # AÑADO EL PROCEDIMIENTO A LA TABLA DE SÍMBOLOS
         params = []

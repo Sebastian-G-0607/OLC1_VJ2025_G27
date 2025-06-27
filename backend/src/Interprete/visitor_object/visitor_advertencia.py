@@ -313,3 +313,9 @@ class Visitor_Advertencia(Visitor):
             return True
         resultado = nodo.derecha.accept(self)
         return resultado
+    
+    def visit_IncrementoVector(self, nodo: Nodo):
+        return False
+    
+    def visit_DecrementoVector(self, nodo: Nodo):
+        return False
