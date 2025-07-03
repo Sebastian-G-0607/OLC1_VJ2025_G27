@@ -1,0 +1,381 @@
+import ply.lex as lex
+import os
+from backend.src.Interprete.simbol.ListaErrores import errores
+from backend.src.Interprete.errors.Error import Error
+# DEFINICIÓN DE TODOS LOS TOKENS DEL LENGUAJE
+tokens = (
+    'IGUAL',
+    'PUNTO_Y_COMA',
+    'DOS_PUNTOS',
+    'COMA',
+    'TRUE',
+    'FALSE',
+    'MAS',
+    'MENOS',
+    'MULTIPLICACION',
+    'DIVISION',
+    'POTENCIA',
+    'PARENTESIS_IZQ',
+    'PARENTESIS_DER',
+    'TIPO_INT',
+    'TIPO_FLOAT',
+    'TIPO_BOOL',
+    'TIPO_CHAR',
+    'TIPO_STR',
+    'PRINT',
+    'IDENTIFICADOR',
+    'COMENTARIOLINEA',
+    'COMENTARIOMULTILINEA',
+    'ENTERO',
+    'FLOTANTE',
+    'CADENA',
+    'CARACTER',
+    'INCREMENTO',
+    'DECREMENTO',
+    'IGUALQUE',
+    'DIFERENTEQUE',
+    'MAYORQUE',
+    'MENORQUE',
+    'MAYORIGUALQUE',
+    'MENORIGUALQUE',
+    'MODULO',
+    'AND',
+    'OR',
+    'NOT',
+    'XOR',
+    'IF',
+    'ELSE',
+    'SWITCH',
+    'CASE',
+    'DEFAULT',
+    'LLAVE_IZQ',
+    'LLAVE_DER',
+    'CORCHETE_IZQ',
+    'CORCHETE_DER',
+    'WHILE',
+    'FOR',
+    'DO',
+    'BREAK',
+    'CONTINUE',
+    'PROC',
+    'EXEC',
+    'VECTOR',
+    'SENO',
+    'COSENO',
+    'INVERSION',
+    'SHUFFLE',
+    'SORT',
+)
+
+# EXPRESIONES REGULARES PARA PALABRAS Y SÍMBOLOS RESERVADOS DEL LENGUAJE
+t_IGUALQUE = r'=='
+t_IGUAL = r'='
+t_INCREMENTO = r'\+\+'
+t_MAS = r'\+'
+t_DECREMENTO = r'--'
+t_MENOS = r'-'
+t_POTENCIA = r'\*\*'
+t_MULTIPLICACION = r'\*'
+t_DIFERENTEQUE = r'!='
+t_NOT = r'!'
+t_MAYORIGUALQUE = r'>='
+t_MAYORQUE = r'>'
+t_MENORIGUALQUE = r'<='
+t_MENORQUE = r'<'
+t_AND = r'&&'
+t_OR = r'\|\|'
+t_XOR = r'\^'
+t_DOS_PUNTOS = r':'
+t_PUNTO_Y_COMA = r';'
+t_COMA = r','
+t_DIVISION = r'/'
+t_MODULO = r'%'
+t_PARENTESIS_IZQ = r'\('
+t_PARENTESIS_DER = r'\)'
+t_LLAVE_IZQ = r'\{'
+t_LLAVE_DER = r'\}'
+t_CORCHETE_IZQ = r'\['
+t_CORCHETE_DER = r'\]'
+
+#PALABRAS RESERVADAS DEL LENGUAJE
+def t_PROC(t):
+    r'[Pp][Rr][Oo][Cc]\b'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_EXEC(t):
+    r'[Ee][Xx][Ee][Cc]\b'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_VECTOR(t):
+    r'[Vv][Ee][Cc][Tt][Oo][Rr]\b'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_PRINT(t):
+    r'[Pp][Rr][Ii][Nn][Tt][Ll][Nn]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_IF(t):
+    r'[Ii][Ff]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_ELSE(t):
+    r'[Ee][Ll][Ss][Ee]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_SWITCH(t):
+    r'[Ss][Ww][Ii][Tt][Cc][Hh]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_CASE(t):
+    r'[Cc][Aa][Ss][Ee]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_DEFAULT(t):
+    r'[Dd][Ee][Ff][Aa][Uu][Ll][Tt]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_WHILE(t):
+    r'[Ww][Hh][Ii][Ll][Ee]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_FOR(t):
+    r'[Ff][Oo][Rr]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_DO(t):
+    r'[Dd][Oo]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_BREAK(t):
+    r'[Bb][Rr][Ee][Aa][Kk]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_CONTINUE(t):
+    r'[Cc][Oo][Nn][Tt][Ii][Nn][Uu][Ee]'
+    t.value = str(t.value)
+    t.value = t.value.lower()
+    return t
+
+def t_TRUE(t):
+    r'[Tt][Rr][Uu][Ee]'
+    t.value = 'true'
+    return t
+
+def t_FALSE(t):
+    r'[Ff][Aa][Ll][Ss][Ee]'
+    try:
+        t.value = 'false'
+    except ValueError:
+        print(f"Valor inválido para FALSE: {t.value}")
+        t.value = 'false'
+    return t
+
+def t_SENO(t):
+    r'[Ss][Ee][Nn][Oo]'
+    try:
+        t.value = 'seno'
+    except ValueError:
+        print(f"Valor inválido para SENO: {t.value}")
+        t.value = 'seno'
+    return t
+
+def t_COSENO(t):
+    r'[Cc][Oo][Ss][Ee][Nn][Oo]'
+    try:
+        t.value = 'coseno'
+    except ValueError:
+        print(f"Valor inválido para COSENO: {t.value}")
+        t.value = 'coseno'
+    return t
+
+def t_INVERSION(t):
+    r'[Ii][Nn][Vv]'
+    try:
+        t.value = t.value.lower()
+    except ValueError:
+        print(f"Valor inválido para INVERSION: {t.value}")
+        t.value = 'inv'
+    return t
+
+def t_SHUFFLE(t):
+    r'[Ss][Hh][Uu][Ff][Ff][Ll][Ee]'
+    try:
+        t.value = t.value.lower()
+    except ValueError:
+        print(f"Valor inválido para SHUFFLE: {t.value}")
+        t.value = 'shuffle'
+    return t
+
+def t_SORT(t):
+    r'[Ss][Oo][Rr][Tt]'
+    try:
+        t.value = t.value.lower()
+    except ValueError:
+        print(f"Valor inválido para SORT: {t.value}")
+        t.value = 'sort'
+    return t
+
+def t_TIPO_FLOAT(t):
+    r'[Ff][Ll][Oo][Aa][Tt]\b'
+    try:
+        t.value = str(t.value)
+    except ValueError:
+        print(f"Valor inválido para TIPO_FLOAT: {t.value}")
+        t.value = ""
+    t.value = t.value.lower()
+    return t
+
+def t_TIPO_INT(t):
+    r'[Ii][Nn][Tt]\b'
+    try:
+        t.value = str(t.value)
+    except ValueError:
+        print(f"Valor inválido para TIPO_INT: {t.value}")
+        t.value = ""
+    t.value = t.value.lower()
+    return t
+
+def t_TIPO_BOOL(t):
+    r'[Bb][Oo][Oo][Ll]\b'
+    try:
+        t.value = str(t.value)
+    except ValueError:
+        print(f"Valor inválido para TIPO_BOOL: {t.value}")
+        t.value = ""
+    t.value = t.value.lower()
+    return t
+
+def t_TIPO_CHAR(t):
+    r'[Cc][Hh][Aa][Rr]\b'
+    try:
+        t.value = str(t.value)
+    except ValueError:
+        print(f"Valor inválido para TIPO_CHAR: {t.value}")
+        t.value = ""
+    t.value = t.value.lower()
+    return t
+
+def t_TIPO_STR(t):
+    r'[Ss][Tt][Rr]\b'
+    try:
+        t.value = str(t.value)
+    except ValueError:
+        print(f"Valor inválido para TIPO_STR: {t.value}")
+        t.value = ""
+    t.value = t.value.lower()
+    return t
+
+# EXPRESIONES REGULARES PARA TOKENS DEL LENGUAJE
+def t_IDENTIFICADOR(t):
+    r'[a-zA-Z][a-zA-Z0-9_]*'
+    try:
+        t.value = str(t.value)
+    except ValueError:
+        print(f"Identificador inválido: {t.value}")
+        t.value = ""
+    t.value = t.value.lower()
+    return t
+
+def t_COMENTARIOLINEA(t):
+    r'//.*'
+    pass  # Ignorar comentarios de una línea
+
+def t_COMENTARIOMULTILINEA(t):
+    r'/\*(.|[\n])*\*/'
+    #r'/\*(.*?)\*/'
+    t.lexer.lineno += t.value.count("\n")
+    pass  # Ignorar comentarios de varias líneas
+
+def t_FLOTANTE(t):
+    r'\d+\.\d+'
+    try:
+        t.value = float(t.value)
+    except ValueError:
+        print(f"Valor flotante inválido: {t.value}")
+        t.value = 0
+    return t
+
+def t_ENTERO(t):
+    r'\d+'
+    try:
+        t.value = int(t.value)
+    except ValueError:
+        print(f"Valor entero inválido: {t.value}")
+        t.value = 0
+    return t
+
+def t_CADENA(t):
+    r'"([^"\\]|\\.)*"'
+    t.value = t.value[1:-1]  # Quita las comillas
+    # Solo reemplaza los escapes más comunes
+    t.value = t.value.replace(r'\"', '"').replace(r'\\', '\\').replace(r'\n', '\n').replace(r'\t', '\t').replace(r'\'', '\'')
+    return t
+
+def t_CARACTER(t):
+    r"'(\\.|[^'])'"
+    t.value = t.value[1:-1]  # Quita las comillas
+    t.value = t.value.replace(r'\"', '"').replace(r'\\', '\\').replace(r'\n', '\n').replace(r'\t', '\t').replace(r'\'', '\'')
+    return t
+
+def t_whitespace(t):
+    r'[ \t]+'
+    pass  # Ignorar espacios en blanco
+
+def find_column(input, token):
+    line_start = input.rfind('\n', 0, token.lexpos) + 1
+    return (token.lexpos - line_start) + 1
+
+def t_newLine(t):
+    r'\n+'
+    t.lexer.lineno += t.value.count("\n")
+
+def t_error(t):
+    print("Caracter no reconocido '%s'" % t.value[0], "en la línea %d, columna %d" % (t.lineno, find_column(t.lexer.lexdata, t)))
+    nuevoError = Error('lexico', f"caracter no reconocido", t.lineno, find_column(t.lexer.lexdata, t))
+    errores.append(nuevoError)
+    t.lexer.skip(1)  # Avanza al siguiente carácter
+    #raise Exception(f"Error léxico: caracter '{t.value[0]}' no reconocido en la línea {t.lineno}, columna {find_column(t.lexer.lexdata, t)}")
+
+# Construir el analizador léxico
+print("Construyendo el analizador léxico...")
+def build_lexer():
+    return lex.lex()
+
+#lexer = lex.lex()
+# print(os.getcwd())
+# with open("./backend/src/Interprete/entrada.txt", "r", encoding="utf-8") as f:
+#     data = f.read()
+# lexer.input(data)
+
+# # Tokenize
+# while True:
+#     tok = lexer.token()
+#     if not tok: 
+#         break      # No more input
+#     print(tok)

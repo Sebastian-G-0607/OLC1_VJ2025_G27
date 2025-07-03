@@ -1,6 +1,7 @@
 venv/
 .venv/
-
 # Archivos de Python compilados
 __pycache__/
 *.pyc
+*.svg
+*.dot
