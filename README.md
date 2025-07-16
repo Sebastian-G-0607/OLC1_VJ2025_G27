@@ -19,6 +19,106 @@
 
 ---
 
+## Instrucciones de instalación y ejecución
+1. **Clonar el repositorio:**
+
+    ```bash
+    # con HTTPS
+    git clone https://github.com/Sebastian-G-0607/OLC1_VJ2025_G27.git
+
+    # con SSH
+    git clone git@github.com:Sebastian-G-0607/OLC1_VJ2025_G27.git
+    ```
+
+2. **Revisa que tengas instalado Python 3:**
+
+    ```bash
+    python --version
+    ```
+    Deberías ver la versión de Python 3 instalada. Si no lo tienes, puedes descargarlo desde [python.org](https://www.python.org/downloads/).
+
+3. **Navega al directorio del proyecto y crea un entorno virtual:**
+
+    ```bash
+    cd OLC1_VJ2025_G27
+    python -m venv venv
+    ```
+
+4. **Activa el entorno virtual:**
+
+  - En Windows cmd:
+    ```bash
+    .\venv\Scripts\activate
+    ```
+  - En PowerShell:
+    ```bash
+    .\venv\Scripts\Activate.ps1
+    ```
+  - En macOS/Linux:
+    ```bash
+    source venv/bin/activate
+    ```
+
+5. **Verifica que el entorno virtual esté activo y verifica la ruta del pip:**
+
+    El entorno virtual debería cambiar tu prompt de terminal para mostrar que está activo. Puedes verificar que estás usando el pip correcto ejecutando:
+
+    ```bash
+    which pip
+    ```
+
+    Deberías ver la ruta del pip dentro del entorno virtual, algo como `tu_ruta/OLC1_VJ2025_G27/venv/bin/pip` o `tu_ruta/OLC1_VJ2025_G27/venv\Scripts\pip.exe`.
+
+6. **Instala las dependencias necesarias:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+7. **Ejecuta el proyecto backend:**
+    
+    El archivo principal del proyecto es `backend/src/app.py`. Puedes ejecutarlo con ayuda de tu IDE o directamente desde la terminal con:
+
+    ```bash
+    python3 tu_ruta/OLC1_VJ2025_G27/backend/src/app.py
+    ```
+
+    Puedes ver tu ruta absoluta con el comando `pwd` en macOS/Linux o `cd` en Windows. Cambia `tu_ruta` por la primera parte de la ruta que obtuviste.
+
+8. **Instala las dependencias del frontend:**
+    
+    Primero revisa que tengas instalado **Node.js** y **pnpm**. Puedes verificarlo con:
+
+    ```bash
+    node -v
+    pnpm -v
+    ```
+    Si no tienes Node.js, puedes descargarlo desde [nodejs.org](https://nodejs.org/).
+    Si no tienes pnpm, puedes instalarlo con:
+
+    ```bash
+    npm install -g pnpm
+    ```
+
+    Ahora puedes instalar las dependencias del frontend:
+
+    ```bash
+    cd frontend # Verifica que estás en OLC1_VJ2025_G27/frontend
+    pnpm install
+    ```
+
+9. **Ejecuta el proyecto frontend:**
+    
+    Una vez instaladas las dependencias, puedes iniciar el servidor de desarrollo del frontend:
+
+    ```bash
+    pnpm run dev
+    ```
+
+10. **Prueba el proyecto:**
+    
+    Abre tu navegador y ve a `http://localhost:5173/` para ver la interfaz del proyecto.
+    Puedes consultar la sintaxis completa del lenguaje Obj-C y ejemplos de uso en la [`definición del lenguaje`](./Documentacion/Enunciados). El proyecto fue desarrollado en dos fases y cada pdf contiene ejemplos de código y explicaciones detalladas para cada aspecto del lenguaje.
+
 ## 🎯 Objetivo General
 
 Aplicar los conocimientos sobre la fase de análisis léxico y sintáctico de un compilador y su importancia dentro del contexto de lenguajes de programación.
